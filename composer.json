@@ -1,0 +1,19 @@
+{
+    "name": "v1p3r75/nexa-orm",
+    "description": "A PHP new generation ORM",
+    "type": "library",
+    "license": "MIT",
+    "autoload": {
+        "psr-4": {
+            "Nexa\\": "src/"
+        }
+    },
+    "authors": [
+        {
+            "name": "v1p3r75",
+            "email": "elfriedv16@gmail.com"
+        }
+    ],
+    "minimum-stability": "dev",
+    "require": {}
+}
