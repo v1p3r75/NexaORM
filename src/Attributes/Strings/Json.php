@@ -4,15 +4,12 @@ namespace Nexa\Attributes\Strings;
 
 use Attribute;
 use Doctrine\DBAL\Types\Types;
-use Nexa\Interfaces\AttributeInterface;
+use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Json implements AttributeInterface
+class Json extends AttributeType
 {
-    public function __construct(public int $len = 255) {}
 
-    public function getType() {
+    protected string $value = Types::JSON;
 
-        return Types::JSON;
-    }
 }

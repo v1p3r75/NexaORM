@@ -4,15 +4,12 @@ namespace Nexa\Attributes\Numbers;
 
 use Attribute;
 use Doctrine\DBAL\Types\Types;
-use Nexa\Interfaces\AttributeInterface;
+use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class SmallInt implements AttributeInterface
+class SmallInt extends AttributeType
 {
-    public function __construct(public int $len = 255) {}
 
-    public function getType() {
+    protected string $value = Types::SMALLINT;
 
-        return Types::SMALLINT;
-    }
 }

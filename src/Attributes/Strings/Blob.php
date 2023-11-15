@@ -4,15 +4,12 @@ namespace Nexa\Attributes\Strings;
 
 use Attribute;
 use Doctrine\DBAL\Types\Types;
-use Nexa\Interfaces\AttributeInterface;
+use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Blob implements AttributeInterface
+class Blob extends AttributeType
 {
-    public function __construct(public int $len = 255) {}
 
-    public function getType() {
+    protected string $value = Types::BLOB;
 
-        return Types::TEXT;
-    }
 }

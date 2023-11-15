@@ -4,6 +4,6 @@ namespace Nexa\Interfaces;
 
 interface AttributeInterface
 {
-    public function getType();
+    public function get();
     
 }

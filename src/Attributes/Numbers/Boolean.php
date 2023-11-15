@@ -4,13 +4,12 @@ namespace Nexa\Attributes\Numbers;
 
 use Attribute;
 use Doctrine\DBAL\Types\Types;
-use Nexa\Interfaces\AttributeInterface;
+use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Boolean implements AttributeInterface
+class Boolean extends AttributeType
 {
-    public function getType() {
 
-        return Types::BOOLEAN;
-    }
+    protected string $value = Types::BOOLEAN;
+
 }

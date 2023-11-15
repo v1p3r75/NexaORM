@@ -4,14 +4,12 @@ namespace Nexa\Attributes\Dates;
 
 use Attribute;
 use Doctrine\DBAL\Types\Types;
-use Nexa\Interfaces\AttributeInterface;
+use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Date implements AttributeInterface
+class Date extends AttributeType
 {
 
-    public function getType() {
-
-        return Types::DATE_MUTABLE;
-    }
+    protected string $value = Types::DATE_MUTABLE;
+    
 }
