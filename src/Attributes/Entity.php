@@ -8,4 +8,5 @@ use Attribute;
 class Entity
 {
     
+    public function __construct(?string $tableName) {}
 }

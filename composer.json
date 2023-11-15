@@ -5,7 +5,8 @@
     "license": "MIT",
     "autoload": {
         "psr-4": {
-            "Nexa\\": "src/"
+            "Nexa\\": "src/",
+            "Testing\\": "Testing/"
         }
     },
     "authors": [
@@ -15,5 +16,10 @@
         }
     ],
     "minimum-stability": "dev",
-    "require": {}
+    "require": {
+        "doctrine/dbal": "4.0.x-dev"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "6.4.x-dev"
+    }
 }
