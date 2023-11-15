@@ -18,7 +18,7 @@ use Nexa\Attributes\Strings\AlphaNumeric;
 use Nexa\Attributes\Strings\Text;
 use Nexa\Reflection\EntityReflection;
 
-#[Entity]
+#[Entity('users')]
 class User
 {
 
@@ -42,7 +42,3 @@ class User
 }
 
 $entity = new EntityReflection(User::class);
-
-// $entity->getColumns();
-
-dump($entity->getColumns());

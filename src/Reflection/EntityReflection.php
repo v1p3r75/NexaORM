@@ -8,7 +8,7 @@ use ReflectionClass;
 class EntityReflection extends ReflectionClass
 {
 
-    public function __construct(private string $entity) {
+    public function __construct(private object | string $entity) {
 
         parent::__construct($entity);
     }
@@ -62,4 +62,9 @@ class EntityReflection extends ReflectionClass
 
         return $constraints;
     }
+
+    private function buildTable() {
+
+    }
+    
 }
