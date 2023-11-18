@@ -4,13 +4,14 @@ namespace Testing;
 
 require '../vendor/autoload.php';
 
+use DateTime;
 use Nexa\Attributes\Common\AutoIncrement;
 use Nexa\Attributes\Common\CustomOptions;
 use Nexa\Attributes\Common\Length;
 use Nexa\Attributes\Common\NotNull;
-use Nexa\Attributes\Common\Nullable;
 use Nexa\Attributes\Common\Unsigned;
 use Nexa\Attributes\Dates\Date;
+use Nexa\Attributes\Dates\DateTime as DatesDateTime;
 use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Fractional;
 use Nexa\Attributes\Numbers\Number;
@@ -22,23 +23,23 @@ use Nexa\Reflection\EntityReflection;
 class User
 {
 
-    #[AlphaNumeric]
+    #[Number]
     #[AutoIncrement(true)]
-    public $id;
+    public int $id;
 
     #[AlphaNumeric]
     #[Length(10)]
-    public $firstname;
+    public string $firstname;
 
     #[Fractional]
     #[NotNull(false)]
     #[Length(56)]
-    public $money;
+    public float $money;
 
-    #[Number]
-    #[Unsigned(true)]
-    #[CustomOptions(['test' => 'mouse'])]
-    public $date_creation;
+    #[DatesDateTime]
+    // #[Unsigned(true)]
+    // #[CustomOptions(['test' => 'mouse'])]
+    public DateTime $created_at;
 }
 
-$entity = new EntityReflection(User::class);
+// $entity = new EntityReflection(User::class);

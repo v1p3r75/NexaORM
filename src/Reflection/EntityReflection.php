@@ -3,12 +3,14 @@
 namespace Nexa\Reflection;
 
 use Doctrine\DBAL\Schema\Schema;
+use Nexa\Attributes\Entities\Entity;
 use ReflectionClass;
 
 class EntityReflection extends ReflectionClass
 {
 
-    public function __construct(private object | string $entity) {
+    public function __construct(private object | string $entity)
+    {
 
         parent::__construct($entity);
     }
@@ -18,10 +20,9 @@ class EntityReflection extends ReflectionClass
 
         $properties = $this->getProperties();
 
-        $attributes = array_map(function ($propertie){ 
-            
-            return ['name' => $propertie->getName(), 'attributes' => $propertie->getAttributes()];
+        $attributes = array_map(function ($propertie) {
 
+            return ['name' => $propertie->getName(), 'attributes' => $propertie->getAttributes()];
         }, $properties);
 
         $columns = [];
@@ -35,20 +36,21 @@ class EntityReflection extends ReflectionClass
                 $attributeInstance = $definition->newInstance();
 
                 return $attributeInstance->get();
-
             }, $attribute["attributes"]);
 
-            $columns[$attribute_name]["constraints"] = $this->formatConstraints($constraints);
+            $columns[] = [
+                'name' => $attribute_name,
+                "constraints" => $this->formatConstraints($constraints)
+            ];
         }
 
         return $columns;
-
     }
 
     /**
      * Merge all constraints without a first constraints (type of columns)
      * */
-    
+
     private function formatConstraints(array $constraints): array
     {
 
@@ -63,8 +65,16 @@ class EntityReflection extends ReflectionClass
         return $constraints;
     }
 
-    private function buildTable() {
+    public function getTable()
+    {
 
+        $entityAttr = $this->getAttributes(Entity::class);
+
+        if (isset($entityAttr[0]) && isset($entityAttr[0]->getArguments()[0])) {
+
+            return $entityAttr[0]->getArguments()[0];
+        }
+
+        return "none";
     }
-    
 }
