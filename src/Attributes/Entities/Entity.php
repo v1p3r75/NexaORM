@@ -8,5 +8,5 @@ use Attribute;
 class Entity
 {
     
-    public function __construct(protected ?string $tableName) {}
+    public function __construct(protected string $tableName) {}
 }

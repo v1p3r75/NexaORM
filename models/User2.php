@@ -14,12 +14,13 @@ use Nexa\Attributes\Dates\DateAndTime;
 use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Fractional;
 use Nexa\Attributes\Numbers\Number;
+use Nexa\Attributes\Numbers\SmallInt;
 use Nexa\Attributes\Strings\AlphaNumeric;
 use Nexa\Attributes\Strings\Text;
 use Nexa\Reflection\EntityReflection;
 
-#[Entity('users')]
-class User
+#[Entity('users2')]
+class User2
 {
 
     #[Number]
@@ -29,11 +30,10 @@ class User
 
     #[AlphaNumeric]
     #[Length(10)]
-    public string $fristname;
+    public string $firstname;
 
-    #[Fractional]
+    #[SmallInt]
     #[NotNull(false)]
-    #[Length(56)]
     public float $money;
 
     #[DateAndTime]
