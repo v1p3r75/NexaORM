@@ -32,7 +32,7 @@ class Nexa
 
     }
 
-    public function getSchema(EntityReflection $entity, Schema $schema) {
+    public function getSql(EntityReflection $entity, Schema $schema) {
 
         $tableName = $entity->getTable();
 
@@ -48,7 +48,7 @@ class Nexa
 
         }, $entity->getColumns());
 
-
-        dump($schema->toSql(new MySQLPlatform));
+        return implode("", $schema->toSql(new MySQLPlatform));
     }
+
 }

@@ -1,8 +1,6 @@
 <?php
 
-namespace Testing;
-
-require '../vendor/autoload.php';
+namespace Models;
 
 use DateTime;
 use Nexa\Attributes\Common\AutoIncrement;
@@ -11,7 +9,7 @@ use Nexa\Attributes\Common\Length;
 use Nexa\Attributes\Common\NotNull;
 use Nexa\Attributes\Common\Unsigned;
 use Nexa\Attributes\Dates\Date;
-use Nexa\Attributes\Dates\DateTime as DatesDateTime;
+use Nexa\Attributes\Dates\DateAndTime;
 use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Fractional;
 use Nexa\Attributes\Numbers\Number;
@@ -36,7 +34,7 @@ class User
     #[Length(56)]
     public float $money;
 
-    #[DatesDateTime]
+    #[DateAndTime]
     // #[Unsigned(true)]
     // #[CustomOptions(['test' => 'mouse'])]
     public DateTime $created_at;
