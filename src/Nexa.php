@@ -4,7 +4,6 @@ namespace Nexa;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
@@ -16,28 +15,25 @@ use Nexa\Reflection\EntityReflection;
 class Nexa
 {
 
-    private ?Connection $connection = null;
-    private Schema $schema;
+    private ?Connection $connection;
     private Comparator $comparator;
 
     private $platform;
 
-    public function __construct(
-        private array $config,
-    ) {
+    public function __construct(private readonly array $config)
+    {
 
         $this->connection = DriverManager::getConnection($this->config);
-        $this->schema = new Schema;
-        $this->platform = new MySQLPlatform;
+        $this->platform = $this->connection->getDatabasePlatform();
         $this->comparator = new Comparator($this->platform);
 
     }
 
     public function getSchema(EntityReflection $entity): Schema
     {
-
+        $schema = new Schema;
         $tableName = $entity->getTable();
-        $table = $this->schema->createTable($tableName);
+        $table = $schema->createTable($tableName);
         $columns = $entity->getColumns();
 
         array_map(function($column) use ($table) {
@@ -73,7 +69,7 @@ class Nexa
 
         },$foreignKeys);
 
-        return $this->schema;
+        return $schema;
     }
 
     private function getPrimaryKeys(array $columns): array {
@@ -132,10 +128,10 @@ class Nexa
 
         return implode(";", $schema->toSql($this->platform));
     }
-    public function compare(Schema $schema1, Schema $schema2): \Doctrine\DBAL\Schema\SchemaDiff
+    public function compare(Schema $oldSchema, Schema $newSchema): \Doctrine\DBAL\Schema\SchemaDiff
     {
 
-        return $this->comparator->compareSchemas($schema1, $schema2);
+        return $this->comparator->compareSchemas($oldSchema, $newSchema);
 
     }
 }
