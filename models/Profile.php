@@ -5,7 +5,6 @@ namespace Models;
 use DateTime;
 use Nexa\Attributes\Common\AutoIncrement;
 use Nexa\Attributes\Common\CustomOptions;
-use Nexa\Attributes\Common\Length;
 use Nexa\Attributes\Common\Nullable;
 use Nexa\Attributes\Common\PrimaryKey;
 use Nexa\Attributes\Common\Unsigned;
@@ -29,12 +28,9 @@ class Profile
     public int $id;
 
     #[AlphaNumeric]
-    #[Length(50)]
     public string $img;
 
     #[AlphaNumeric]
-    #[Nullable(false)]
-    #[Length(10)]
     public string $address;
 
     #[DateAndTime]

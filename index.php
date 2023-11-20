@@ -26,7 +26,8 @@ $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
 $users = $nexa->getSchema(new EntityReflection(User::class));
 $single = $nexa->getSchema(new EntityReflection(Single::class));
 
+dd($single);
 dump($nexa->compare($profiles, $users)->getDroppedTables());
-//$nexa->executeSchema($profiles);
-//$nexa->executeSchema($users);
-//$nexa->executeSchema($single);
+$nexa->executeSchema($profiles);
+$nexa->executeSchema($users);
+$nexa->executeSchema($single);

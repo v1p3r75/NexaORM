@@ -10,6 +10,11 @@ use Nexa\Attributes\AttributeType;
 class Text extends AttributeType
 {
 
+    public function __construct(int $length = 255) {
+
+        parent::__construct($length);
+    }
+
     protected string $value = Types::TEXT;
 
 }

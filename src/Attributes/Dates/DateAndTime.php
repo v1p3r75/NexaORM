@@ -10,6 +10,10 @@ use Nexa\Attributes\AttributeType;
 class DateAndTime extends AttributeType
 {
 
+    public function __construct() {
+
+        parent::__construct(null);
+    }
     protected string $value = Types::DATETIMETZ_MUTABLE;
     
 }

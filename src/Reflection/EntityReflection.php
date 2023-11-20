@@ -50,18 +50,20 @@ class EntityReflection extends ReflectionClass
      * Merge all constraints without a first constraints (type of columns)
      * */
 
-    private function formatConstraints(array $constraints): array
+    private function formatConstraints(array $constraints)
     {
 
         if (count($constraints) > 1) {
 
-            $options = array_slice($constraints, 1);
-            $mergedOptions = array_merge(...$options);
+            $params = $constraints[0]['params']; // constructor params
+            $options = array_slice($constraints, 1); // common options
+            $mergedOptions = array_merge($params, ...$options);
 
-            return [$constraints[0], $mergedOptions];
+            return [$constraints[0]['type'], $mergedOptions];
         }
 
-        return $constraints;
+        return [$constraints[0]["type"], $constraints[0]['params']];
+
     }
 
     public function getTable()

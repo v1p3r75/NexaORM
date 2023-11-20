@@ -5,7 +5,6 @@ namespace Models;
 use DateTime;
 use Nexa\Attributes\Common\AutoIncrement;
 use Nexa\Attributes\Common\CustomOptions;
-use Nexa\Attributes\Common\Length;
 use Nexa\Attributes\Common\Nullable;
 use Nexa\Attributes\Common\PrimaryKey;
 use Nexa\Attributes\Common\Unsigned;
@@ -23,18 +22,16 @@ use Nexa\Reflection\EntityReflection;
 class Single
 {
 
-    #[Number]
+    #[Number(11)]
     #[PrimaryKey]
     #[AutoIncrement]
     public int $id;
 
-    #[AlphaNumeric]
-    #[Length(50)]
+    #[AlphaNumeric(50)]
     public string $img;
 
-    #[AlphaNumeric]
+    #[AlphaNumeric(20)]
     #[Nullable(false)]
-    #[Length(10)]
     public string $address;
 
     #[DateAndTime]
