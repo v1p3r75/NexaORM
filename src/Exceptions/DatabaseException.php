@@ -3,6 +3,7 @@
 namespace Nexa\Exceptions;
 
 use Exception;
+use Throwable;
 
 class DatabaseException extends  Exception
 {

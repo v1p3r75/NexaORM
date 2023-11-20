@@ -8,7 +8,7 @@ use ReflectionClass;
 class EntityReflection extends ReflectionClass
 {
 
-    public function __construct(private object | string $entity)
+    public function __construct(object | string $entity)
     {
 
         parent::__construct($entity);
