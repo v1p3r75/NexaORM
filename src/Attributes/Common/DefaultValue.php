@@ -8,11 +8,11 @@ use Nexa\Attributes\AttributeCommon;
 use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class NotNull extends AttributeCommon
+class DefaultValue extends AttributeCommon
 {
 
-    protected string $key = "notnull";
+    protected string $key = "default";
 
-    public function __construct(protected $value = true) {}
+    public function __construct(protected $value) {}
     
 }

@@ -18,11 +18,13 @@ $nexa = new Nexa(
         'user' => 'root',
         'password' => '',
         'dbname' => 'nexa',
-        'driver' => 'pdo_mysql',
+        'driver' => 'pdo_mysql'
     ],
 );
 
-$result = $nexa->saveEntity(new EntityReflection(User::class));
-$result2 = $nexa->saveEntity(new EntityReflection(User2::class));
+$profiles = $nexa->getSchema(new EntityReflection(Profile::class));
+$users = $nexa->getSchema(new EntityReflection(User::class));
 
-dump($nexa->compare($result, $result2));
+//dump($schema);
+$nexa->executeSchema($users);
+//$nexa->executeSchema($profiles)

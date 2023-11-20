@@ -4,11 +4,12 @@ namespace Nexa;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Platforms\MySQL80Platform;
 use Doctrine\DBAL\Platforms\MySQLPlatform;
+use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
-use Nexa\Attributes\Common\PrimaryKey;
+use Exception;
+use Nexa\Exceptions\DatabaseException;
 use Nexa\Reflection\EntityReflection;
 
 
@@ -19,20 +20,23 @@ class Nexa
     private Schema $schema;
     private Comparator $comparator;
 
+    private $platform;
+
     public function __construct(
         private array $config,
     ) {
 
         $this->connection = DriverManager::getConnection($this->config);
         $this->schema = new Schema;
-        $this->comparator = new Comparator(new MySQLPlatform);
+        $this->platform = new MySQLPlatform;
+        $this->comparator = new Comparator($this->platform);
 
     }
 
-    public function saveEntity(EntityReflection $entity) {
+    public function getSchema(EntityReflection $entity): Schema
+    {
 
         $tableName = $entity->getTable();
-
         $table = $this->schema->createTable($tableName);
         $columns = $entity->getColumns();
 
@@ -40,67 +44,98 @@ class Nexa
 
             $name = $column['name'];
             
-            $type = isset($column['constraints'][0]) ? $column['constraints'][0] : null;
+            $type = $column['constraints'][0] ?? null;
 
-            $options = [];
+            $options = $column['constraints'][1] ?? [];
 
-            if (isset($column['constraints'][1])) {
-                
-                if (array_key_exists('primary_key', $column['constraints'][1])) {
+            if (array_key_exists('primary_key', $options)) {
 
-                    unset($column['constraints'][1]['primary_key']);
-                }
+                unset($options['primary_key']);
+            }
+            if (array_key_exists('foreign_key', $options)) {
 
-                $options = $column['constraints'][1];
+                unset($options['foreign_key']);
             }
 
             $table->addColumn($name, $type, $options);
 
         }, $columns);
 
-        $primaryKey = $this->getPrimaryKey($columns);
+        $primaryKeys = $this->getPrimaryKeys($columns);
+        $table->setPrimaryKey($primaryKeys);
 
-        $key = isset($primaryKey) ? $primaryKey['name'] : null;
+        $foreignKeys = $this->getForeignKeys($columns);
 
-        $table->setPrimaryKey([$key]);
+        array_map(function ($foreign) use ($table) {
+            // $foreign = [column_name, $foreign_table_name, $foreign_table_columns, $options]
 
-        $sql = implode("", $this->schema->toSql(new MySQLPlatform));
+            $table->addForeignKeyConstraint($foreign[1], [$foreign[0]], $foreign[2], $foreign[3]);
+
+        },$foreignKeys);
 
         return $this->schema;
     }
 
-    private function getPrimaryKey(array $columns): array {
+    private function getPrimaryKeys(array $columns): array {
 
-        foreach($columns as $column){
-            
+        $keys = [];
+        foreach($columns as $column)
+        {
             // find and return the primary key column
             if($column && isset($column['constraints'][1])) {
 
-                if (array_key_exists('primary_key', $column['constraints'][1]))
-                return $column;
-            }
-        }
+                if( array_key_exists('primary_key', $column['constraints'][1])) {
 
-        return [];
+                    $keys[] = $column['name'];
+                }
+            }
+        };
+
+        return $keys;
     }
 
-    public function executeQuery(string $sql) {
+    private function getForeignKeys(array $columns): array {
 
+        $keys = [];
+        foreach($columns as $column)
+        {
+            // find and return the foreign keys
+            if(isset($column['constraints'][1])) {
+
+                if( array_key_exists('foreign_key', $column['constraints'][1])) {
+
+                    $keys[] = array_merge([$column['name']], $column['constraints'][1]['foreign_key']);
+                }
+            }
+        };
+
+        return $keys;
+    }
+
+
+    public function executeSchema($schema): Result | DatabaseException
+    {
+
+        $sql = $this->getQuery($schema);
         $prepare = $this->connection->prepare($sql);
 
-        if($result = $prepare->executeQuery()) {
+        try {
+            return $prepare->executeQuery();
 
-            return $result;
+        }catch (Exception $e) {
+
+            throw new DatabaseException($e->getMessage(), $e->getCode());
         }
-
-        return false;
     }
 
-    public function compare(Schema $schema1, Schema $schema2) {
+    public function getQuery(Schema $schema): string {
 
-        $schemaManager = $this->connection->createSchemaManager();
-        $comparator = $schemaManager->createComparator();
+        return implode(";", $schema->toSql($this->platform));
+    }
+    public function compare(Schema $schema1, Schema $schema2): \Doctrine\DBAL\Schema\SchemaDiff
+    {
 
-        return $comparator->compareSchemas($schema1, $schema2);
+        return $this->comparator->compareSchemas($schema1, $schema2);
+
     }
 }

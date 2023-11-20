@@ -2,7 +2,6 @@
 
 namespace Nexa\Reflection;
 
-use Doctrine\DBAL\Schema\Schema;
 use Nexa\Attributes\Entities\Entity;
 use ReflectionClass;
 
@@ -15,14 +14,14 @@ class EntityReflection extends ReflectionClass
         parent::__construct($entity);
     }
 
-    public function getColumns()
+    public function getColumns(): array
     {
 
         $properties = $this->getProperties();
 
-        $attributes = array_map(function ($propertie) {
+        $attributes = array_map(function ($property) {
 
-            return ['name' => $propertie->getName(), 'attributes' => $propertie->getAttributes()];
+            return ['name' => $property->getName(), 'attributes' => $property->getAttributes()];
         }, $properties);
 
         $columns = [];
@@ -35,7 +34,7 @@ class EntityReflection extends ReflectionClass
 
                 $attributeInstance = $definition->newInstance();
 
-                return $attributeInstance->get();
+                return $attributeInstance->get(); // get attr type name (string, date, integer,...)
             }, $attribute["attributes"]);
 
             $columns[] = [
