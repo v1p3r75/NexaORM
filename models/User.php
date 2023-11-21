@@ -29,7 +29,7 @@ class User
     public string $username;
 
     #[Number]
-    #[ForeignKey(Profile::class, ['id'], ['onDeleted' => 'CASCADE'])]
+    #[ForeignKey(Profile::class, ['id'], ['onDelete' => 'CASCADE'])]
     #[Comment('user profile')]
     #[Nullable]
     public int $profile_id;

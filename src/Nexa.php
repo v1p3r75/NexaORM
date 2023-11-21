@@ -68,6 +68,8 @@ class Nexa
 
         },$foreignKeys);
 
+        // TODO: Add uniqueIndex columns
+
         return $schema;
     }
 
@@ -148,8 +150,9 @@ class Nexa
     public function compare(Schema $oldSchema, Schema $newSchema): \Doctrine\DBAL\Schema\SchemaDiff
     {
 
-        $result = $this->comparator->compareSchemas($oldSchema, $newSchema);
+        //TODO: return sql instead of SchemaDiff instance
 
-        return $result;
+        return $this->comparator->compareSchemas($oldSchema, $newSchema);
+
     }
 }
