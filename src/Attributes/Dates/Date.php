@@ -10,6 +10,11 @@ use Nexa\Attributes\AttributeType;
 class Date extends AttributeType
 {
 
+    public function __construct() {
+
+        parent::__construct(null);
+    }
+
     protected string $value = Types::DATE_MUTABLE;
     
 }

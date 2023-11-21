@@ -6,12 +6,13 @@ use Attribute;
 use Doctrine\DBAL\Types\Types;
 use Nexa\Attributes\AttributeCommon;
 use Nexa\Attributes\AttributeType;
+use Nexa\Nexa;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class NotNull extends AttributeCommon
+class PrimaryKey extends AttributeCommon
 {
 
-    protected string $key = "notnull";
+    protected string $key = Nexa::PRIMARY_KEY;
 
     public function __construct(protected $value = true) {}
     

@@ -15,6 +15,6 @@ class AttributeCommon implements AttributeInterface
 
         $data = [$this->key => $this->value];
 
-        return [...$data];
+        return ['options' => $data];
     }
 }

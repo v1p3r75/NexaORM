@@ -8,10 +8,10 @@ use Nexa\Attributes\AttributeCommon;
 use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class Length extends AttributeCommon
+class DefaultValue extends AttributeCommon
 {
 
-    protected string $key = "length";
+    protected string $key = "default";
 
     public function __construct(protected $value) {}
     

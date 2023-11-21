@@ -17,11 +17,16 @@ $nexa = new Nexa(
         'host' => 'localhost',
         'user' => 'root',
         'password' => '',
-        'dbname' => 'nexa'
+        'dbname' => 'nexa',
+        'driver' => 'pdo_mysql'
     ],
-    new Driver,
 );
 
-$result = $nexa->getSql(new EntityReflection(User::class), new Schema);
+$profiles = $nexa->getSchema(new EntityReflection(Profile::class));
+$users = $nexa->getSchema(new EntityReflection(User::class));
+$single = $nexa->getSchema(new EntityReflection(Single::class));
 
-dump($result);
+
+$nexa->executeSchema($single);
+$nexa->executeSchema($profiles);
+$nexa->executeSchema($users);

@@ -2,27 +2,26 @@
 
 namespace Nexa\Reflection;
 
-use Doctrine\DBAL\Schema\Schema;
 use Nexa\Attributes\Entities\Entity;
 use ReflectionClass;
 
 class EntityReflection extends ReflectionClass
 {
 
-    public function __construct(private object | string $entity)
+    public function __construct(object | string $entity)
     {
 
         parent::__construct($entity);
     }
 
-    public function getColumns()
+    public function getColumns(): array
     {
 
         $properties = $this->getProperties();
 
-        $attributes = array_map(function ($propertie) {
+        $attributes = array_map(function ($property) {
 
-            return ['name' => $propertie->getName(), 'attributes' => $propertie->getAttributes()];
+            return ['name' => $property->getName(), 'attributes' => $property->getAttributes()];
         }, $properties);
 
         $columns = [];
@@ -35,8 +34,10 @@ class EntityReflection extends ReflectionClass
 
                 $attributeInstance = $definition->newInstance();
 
-                return $attributeInstance->get();
+                return $attributeInstance->get(); // get attr type name (string, date, integer,...)
             }, $attribute["attributes"]);
+
+            if(! $constraints) continue; // if the property have not an attribute
 
             $columns[] = [
                 'name' => $attribute_name,
@@ -54,15 +55,30 @@ class EntityReflection extends ReflectionClass
     private function formatConstraints(array $constraints): array
     {
 
-        if (count($constraints) > 1) {
+        $optionsList = array_filter(
+            $constraints,
+            fn($constraint) => array_key_exists('options', $constraint)
+        );
 
-            $options = array_slice($constraints, 1);
-            $mergedOptions = array_merge(...$options);
+        $typesList = array_filter(
+            $constraints,
+            fn($constraint) => array_key_exists('type', $constraint)
+        );
 
-            return [$constraints[0], $mergedOptions];
-        }
+        $first = array_key_first($typesList); // select the first type if there are more types.
 
-        return $constraints;
+        $type = $typesList[$first];
+
+        $options = array_map(function($options) {
+
+            return $options['options'];
+
+        }, $optionsList);
+
+        $options = array_merge($type['params'], ...$options); // Merge options with contructor params
+
+        return [$type['type'], $options];
+
     }
 
     public function getTable()
@@ -74,7 +90,7 @@ class EntityReflection extends ReflectionClass
 
             return $entityAttr[0]->getArguments()[0];
         }
-
+        // TODO: use library for use plural of classname
         return "none";
     }
 }

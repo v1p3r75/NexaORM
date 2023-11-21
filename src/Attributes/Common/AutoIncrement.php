@@ -13,6 +13,6 @@ class AutoIncrement extends AttributeCommon
 
     protected string $key = "autoincrement";
 
-    public function __construct(protected $value = false) {}
+    public function __construct(protected $value = true) {}
     
 }
