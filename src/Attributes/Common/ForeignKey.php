@@ -5,6 +5,7 @@ namespace Nexa\Attributes\Common;
 use Attribute;
 use Nexa\Attributes\AttributeCommon;
 use Nexa\Attributes\Entities\Entity;
+use Nexa\Nexa;
 use Nexa\Reflection\EntityReflection;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
@@ -24,7 +25,7 @@ class ForeignKey extends AttributeCommon
 
         return [
             'options' => [
-                "foreign_key" => [
+                Nexa::FOREIGN_KEY => [
                     $reflexion->getTable(), $this->foreignColumnsNames, $this->options
                 ]
             ]
