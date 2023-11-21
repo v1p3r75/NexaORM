@@ -4,8 +4,6 @@ namespace Models;
 
 use DateTime;
 use Nexa\Attributes\Common\AutoIncrement;
-use Nexa\Attributes\Common\CustomOptions;
-use Nexa\Attributes\Common\Nullable;
 use Nexa\Attributes\Common\PrimaryKey;
 use Nexa\Attributes\Common\Unsigned;
 use Nexa\Attributes\Dates\Date;
@@ -33,7 +31,7 @@ class Profile
     #[AlphaNumeric]
     public string $address;
 
-    #[DateAndTime]
+    #[Date]
     public DateTime $created_at;
 }
 

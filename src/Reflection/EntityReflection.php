@@ -37,6 +37,8 @@ class EntityReflection extends ReflectionClass
                 return $attributeInstance->get(); // get attr type name (string, date, integer,...)
             }, $attribute["attributes"]);
 
+            if(! $constraints) continue; // if the property have not an attribute
+
             $columns[] = [
                 'name' => $attribute_name,
                 "constraints" => $this->formatConstraints($constraints)
@@ -50,19 +52,32 @@ class EntityReflection extends ReflectionClass
      * Merge all constraints without a first constraints (type of columns)
      * */
 
-    private function formatConstraints(array $constraints)
+    private function formatConstraints(array $constraints): array
     {
 
-        if (count($constraints) > 1) {
+        $optionsList = array_filter(
+            $constraints,
+            fn($constraint) => array_key_exists('options', $constraint)
+        );
 
-            $params = $constraints[0]['params']; // constructor params
-            $options = array_slice($constraints, 1); // common options
-            $mergedOptions = array_merge($params, ...$options);
+        $typesList = array_filter(
+            $constraints,
+            fn($constraint) => array_key_exists('type', $constraint)
+        );
 
-            return [$constraints[0]['type'], $mergedOptions];
-        }
+        $first = array_key_first($typesList); // select the first type if there are more types.
 
-        return [$constraints[0]["type"], $constraints[0]['params']];
+        $type = $typesList[$first];
+
+        $options = array_map(function($options) {
+
+            return $options['options'];
+
+        }, $optionsList);
+
+        $options = array_merge($type['params'], ...$options); // Merge options with contructor params
+
+        return [$type['type'], $options];
 
     }
 
@@ -75,7 +90,7 @@ class EntityReflection extends ReflectionClass
 
             return $entityAttr[0]->getArguments()[0];
         }
-
+        // TODO: use library for use plural of classname
         return "none";
     }
 }

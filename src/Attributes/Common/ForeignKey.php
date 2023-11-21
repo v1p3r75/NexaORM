@@ -23,8 +23,10 @@ class ForeignKey extends AttributeCommon
         $reflexion = new EntityReflection($this->foreignEntity);
 
         return [
-            "foreign_key" => [
-                $reflexion->getTable(), $this->foreignColumnsNames, $this->options
+            'options' => [
+                "foreign_key" => [
+                    $reflexion->getTable(), $this->foreignColumnsNames, $this->options
+                ]
             ]
         ];
     }

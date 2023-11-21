@@ -40,7 +40,7 @@ class Nexa
 
             $name = $column['name'];
             
-            $type = $column['constraints'][0] ?? null;
+            $type = $column['constraints'][0];
 
             $options = $column['constraints'][1] ?? [];
 

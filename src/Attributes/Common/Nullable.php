@@ -13,6 +13,8 @@ class Nullable extends AttributeCommon
 
     protected string $key = "notnull";
 
-    public function __construct(protected $value = false) {}
+    public function __construct($value = true) {
+        $this->value = !$value;
+    }
     
 }

@@ -13,6 +13,6 @@ class Comment extends AttributeCommon
 
     protected string $key = "comment";
 
-    public function __construct(protected $value = null) {}
+    public function __construct(protected $value = "") {}
     
 }
