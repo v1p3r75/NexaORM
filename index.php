@@ -4,13 +4,10 @@ namespace Models;
 
 require './vendor/autoload.php';
 
-use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Inflector\Language;
 use Nexa\Reflection\EntityReflection;
 
-use Doctrine\DBAL\Driver\PDO\MySQL\Driver;
-use Doctrine\DBAL\Platforms\MySQLPlatform;
 use Nexa\Nexa;
-use Models\User;
 
 $nexa = new Nexa(
     [
@@ -20,13 +17,16 @@ $nexa = new Nexa(
         'dbname' => 'nexa',
         'driver' => 'pdo_mysql'
     ],
+    ['lang' => Language::ENGLISH]
 );
 
 $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
 $users = $nexa->getSchema(new EntityReflection(User::class));
 $single = $nexa->getSchema(new EntityReflection(Single::class));
+$userNew = $nexa->getSchema(new EntityReflection(UserNew::class));
 
-
+/*
 $nexa->executeSchema($single);
 $nexa->executeSchema($profiles);
 $nexa->executeSchema($users);
+*/

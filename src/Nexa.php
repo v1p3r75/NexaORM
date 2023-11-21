@@ -4,9 +4,13 @@ namespace Nexa;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\Inflector\Inflector;
+use Doctrine\Inflector\InflectorFactory;
+use Doctrine\Inflector\Language;
 use Exception;
 use Nexa\Exceptions\DatabaseException;
 use Nexa\Reflection\EntityReflection;
@@ -21,21 +25,30 @@ class Nexa
     private ?Connection $connection;
     private Comparator $comparator;
 
-    private $platform;
+    private AbstractPlatform $platform;
 
-    public function __construct(private readonly array $config)
+    private Inflector $inflector;
+
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
+    public function __construct(private readonly array $config, public $other_config = [])
     {
 
         $this->connection = DriverManager::getConnection($this->config);
         $this->platform = $this->connection->getDatabasePlatform();
         $this->comparator = new Comparator($this->platform);
+        $this->inflector = InflectorFactory::createForLanguage(
+            $this->other_config['lang'] ?? Language::ENGLISH
+        )->build();
+
 
     }
 
     public function getSchema(EntityReflection $entity): Schema
     {
         $schema = new Schema;
-        $tableName = $entity->getTable();
+        $tableName = $entity->getTable($this->inflector);
         $table = $schema->createTable($tableName);
         $columns = $entity->getColumns();
 
@@ -86,7 +99,7 @@ class Nexa
                     $keys[] = $column['name'];
                 }
             }
-        };
+        }
 
         return $keys;
     }
@@ -104,7 +117,7 @@ class Nexa
                     $keys[] = array_merge([$column['name']], $column['constraints'][1][Nexa::FOREIGN_KEY]);
                 }
             }
-        };
+        }
 
         return $keys;
     }
@@ -127,6 +140,10 @@ class Nexa
 
     }
 
+    /**
+     * @throws DatabaseException
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function executeSchema($schema): Result | DatabaseException
     {
 
@@ -142,17 +159,21 @@ class Nexa
         }
     }
 
+    /**
+     * @throws \Doctrine\DBAL\Exception
+     */
     public function getQuery(Schema $schema): string {
 
         return implode(";", $schema->toSql($this->platform));
     }
 
-    public function compare(Schema $oldSchema, Schema $newSchema): \Doctrine\DBAL\Schema\SchemaDiff
+    public function compareAndGetSQL(Schema $oldSchema, Schema $newSchema): string
     {
 
-        //TODO: return sql instead of SchemaDiff instance
+        $schemaDiff = $this->comparator->compareSchemas($oldSchema, $newSchema);
 
-        return $this->comparator->compareSchemas($oldSchema, $newSchema);
+        $sql = $this->platform->getAlterSchemaSQL($schemaDiff);
 
+        return implode(";", $sql);
     }
 }

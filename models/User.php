@@ -15,7 +15,7 @@ use Nexa\Attributes\Numbers\Number;
 use Nexa\Attributes\Numbers\SmallInt;
 use Nexa\Attributes\Strings\AlphaNumeric;
 
-#[Entity('users')]
+#[Entity]
 class User
 {
 
