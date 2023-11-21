@@ -11,8 +11,8 @@ use Nexa\Attributes\AttributeType;
 class Unsigned extends AttributeCommon
 {
 
-    protected string $key = "unsigned ";
+    protected string $key = "unsigned";
 
-    public function __construct(protected $value = false) {}
+    public function __construct(protected $value = true) {}
     
 }

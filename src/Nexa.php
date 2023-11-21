@@ -15,6 +15,9 @@ use Nexa\Reflection\EntityReflection;
 class Nexa
 {
 
+    const PRIMARY_KEY = 'primary_key';
+    const FOREIGN_KEY = 'foreign_key';
+
     private ?Connection $connection;
     private Comparator $comparator;
 
@@ -44,13 +47,9 @@ class Nexa
 
             $options = $column['constraints'][1] ?? [];
 
-            if (array_key_exists('primary_key', $options)) {
+            if($key = $this->isSpecialOption($options)) {
 
-                unset($options['primary_key']);
-            }
-            if (array_key_exists('foreign_key', $options)) {
-
-                unset($options['foreign_key']);
+                unset($options[$key]);
             }
 
             $table->addColumn($name, $type, $options);
@@ -80,7 +79,7 @@ class Nexa
             // find and return the primary key column
             if($column && isset($column['constraints'][1])) {
 
-                if( array_key_exists('primary_key', $column['constraints'][1])) {
+                if( array_key_exists(Nexa::PRIMARY_KEY, $column['constraints'][1])) {
 
                     $keys[] = $column['name'];
                 }
@@ -98,9 +97,9 @@ class Nexa
             // find and return the foreign keys
             if(isset($column['constraints'][1])) {
 
-                if( array_key_exists('foreign_key', $column['constraints'][1])) {
+                if( array_key_exists(Nexa::FOREIGN_KEY, $column['constraints'][1])) {
 
-                    $keys[] = array_merge([$column['name']], $column['constraints'][1]['foreign_key']);
+                    $keys[] = array_merge([$column['name']], $column['constraints'][1][Nexa::FOREIGN_KEY]);
                 }
             }
         };
@@ -108,6 +107,23 @@ class Nexa
         return $keys;
     }
 
+
+    private function isSpecialOption(array $options): string | false
+    {
+
+        if (array_key_exists(Nexa::PRIMARY_KEY, $options)) {
+
+            return Nexa::PRIMARY_KEY;
+        }
+
+        if (array_key_exists(Nexa::FOREIGN_KEY, $options)) {
+
+            return Nexa::FOREIGN_KEY;
+        }
+
+        return false;
+
+    }
 
     public function executeSchema($schema): Result | DatabaseException
     {
@@ -128,10 +144,12 @@ class Nexa
 
         return implode(";", $schema->toSql($this->platform));
     }
+
     public function compare(Schema $oldSchema, Schema $newSchema): \Doctrine\DBAL\Schema\SchemaDiff
     {
 
-        return $this->comparator->compareSchemas($oldSchema, $newSchema);
+        $result = $this->comparator->compareSchemas($oldSchema, $newSchema);
 
+        return $result;
     }
 }

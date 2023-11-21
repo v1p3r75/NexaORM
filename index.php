@@ -24,7 +24,9 @@ $nexa = new Nexa(
 
 $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
 $users = $nexa->getSchema(new EntityReflection(User::class));
-//$single = $nexa->getSchema(new EntityReflection(Single::class));
+$single = $nexa->getSchema(new EntityReflection(Single::class));
 
+
+$nexa->executeSchema($single);
 $nexa->executeSchema($profiles);
 $nexa->executeSchema($users);

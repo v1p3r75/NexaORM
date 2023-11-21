@@ -24,6 +24,7 @@ class Single
 
     #[Number(11)]
     #[PrimaryKey]
+    #[Unsigned]
     #[AutoIncrement]
     public int $id;
 
