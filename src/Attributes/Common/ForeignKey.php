@@ -7,6 +7,7 @@ use Nexa\Attributes\AttributeCommon;
 use Nexa\Attributes\Entities\Entity;
 use Nexa\Nexa;
 use Nexa\Reflection\EntityReflection;
+use ReflectionException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class ForeignKey extends AttributeCommon
@@ -19,6 +20,9 @@ class ForeignKey extends AttributeCommon
 
     }
 
+    /**
+     * @throws ReflectionException
+     */
     public function get()
     {
         $reflexion = new EntityReflection($this->foreignEntity);
@@ -26,7 +30,7 @@ class ForeignKey extends AttributeCommon
         return [
             'options' => [
                 Nexa::FOREIGN_KEY => [
-                    $reflexion->getTable(), $this->foreignColumnsNames, $this->options
+                    $reflexion->getTable(Nexa::$inflector), $this->foreignColumnsNames, $this->options
                 ]
             ]
         ];

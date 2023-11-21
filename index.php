@@ -25,8 +25,11 @@ $users = $nexa->getSchema(new EntityReflection(User::class));
 $single = $nexa->getSchema(new EntityReflection(Single::class));
 $userNew = $nexa->getSchema(new EntityReflection(UserNew::class));
 
+dump($nexa->compareAndGetSQL($users, $userNew));
+
 /*
 $nexa->executeSchema($single);
 $nexa->executeSchema($profiles);
 $nexa->executeSchema($users);
+$nexa->compareAndGetSQL($users, $userNew);
 */

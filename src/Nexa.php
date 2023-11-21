@@ -27,18 +27,18 @@ class Nexa
 
     private AbstractPlatform $platform;
 
-    private Inflector $inflector;
+    static Inflector $inflector;
 
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function __construct(private readonly array $config, public $other_config = [])
+    public function __construct(private readonly array $db_config, public $other_config = [])
     {
 
-        $this->connection = DriverManager::getConnection($this->config);
+        $this->connection = DriverManager::getConnection($this->db_config);
         $this->platform = $this->connection->getDatabasePlatform();
         $this->comparator = new Comparator($this->platform);
-        $this->inflector = InflectorFactory::createForLanguage(
+        self::$inflector = InflectorFactory::createForLanguage(
             $this->other_config['lang'] ?? Language::ENGLISH
         )->build();
 
@@ -48,7 +48,7 @@ class Nexa
     public function getSchema(EntityReflection $entity): Schema
     {
         $schema = new Schema;
-        $tableName = $entity->getTable($this->inflector);
+        $tableName = $entity->getTable(self::$inflector);
         $table = $schema->createTable($tableName);
         $columns = $entity->getColumns();
 
