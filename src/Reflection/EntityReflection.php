@@ -87,7 +87,7 @@ class EntityReflection extends ReflectionClass
 
         $entityAttr = $this->getAttributes(Entity::class);
 
-        if (isset($entityAttr[0]) && isset($entityAttr[0]->getArguments()[0])) {
+        if (isset($entityAttr[0], $entityAttr[0]->getArguments()[0])) {
 
             return $entityAttr[0]->getArguments()[0]; // return table name if present
         }

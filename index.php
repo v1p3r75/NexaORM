@@ -20,14 +20,17 @@ $nexa = new Nexa(
     ['lang' => Language::ENGLISH]
 );
 
+/*
+Profile::insert(['img' => 'path', 'address' => 'Cotonou City', 'created_at' => date('Y-m-d')];
+Profile::update(['img' => 'Service', 'address' => 'Cotonou New'], ['id' => 15]);
+dump(Profile::deleteWhere(['img' => 'path3']));
+*/
+
+/*
 $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
 $users = $nexa->getSchema(new EntityReflection(User::class));
 $single = $nexa->getSchema(new EntityReflection(Single::class));
 $userNew = $nexa->getSchema(new EntityReflection(UserNew::class));
-
-dump($nexa->compareAndGetSQL($users, $userNew));
-
-/*
 $nexa->executeSchema($single);
 $nexa->executeSchema($profiles);
 $nexa->executeSchema($users);

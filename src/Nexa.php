@@ -22,7 +22,8 @@ class Nexa
     const PRIMARY_KEY = 'primary_key';
     const FOREIGN_KEY = 'foreign_key';
 
-    private ?Connection $connection;
+    public static ?Connection $connection;
+
     private Comparator $comparator;
 
     private AbstractPlatform $platform;
@@ -35,13 +36,12 @@ class Nexa
     public function __construct(private readonly array $db_config, public $other_config = [])
     {
 
-        $this->connection = DriverManager::getConnection($this->db_config);
-        $this->platform = $this->connection->getDatabasePlatform();
+        self::$connection = DriverManager::getConnection($this->db_config);
+        $this->platform = self::$connection->getDatabasePlatform();
         $this->comparator = new Comparator($this->platform);
         self::$inflector = InflectorFactory::createForLanguage(
             $this->other_config['lang'] ?? Language::ENGLISH
         )->build();
-
 
     }
 
@@ -148,7 +148,7 @@ class Nexa
     {
 
         $sql = $this->getQuery($schema);
-        $prepare = $this->connection->prepare($sql);
+        $prepare = self::$connection->prepare($sql);
 
         try {
             return $prepare->executeQuery();
@@ -176,4 +176,10 @@ class Nexa
 
         return implode(";", $sql);
     }
+
+    public static function getConnection(): Connection
+    {
+        return self::$connection;
+    }
+
 }

@@ -13,7 +13,7 @@ use Nexa\Attributes\Dates\DateAndTime;
 use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Number;
 use Nexa\Attributes\Numbers\SmallInt;
-use Nexa\Attributes\Strings\AlphaNumeric;
+use Nexa\Attributes\Strings\Strings;
 
 #[Entity('users')]
 class UserNew
@@ -24,7 +24,7 @@ class UserNew
     #[AutoIncrement(true)]
     public int $id;
 
-    #[AlphaNumeric]
+    #[Strings]
     public string $username;
 
     #[Number]

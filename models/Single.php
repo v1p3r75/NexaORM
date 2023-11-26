@@ -14,7 +14,7 @@ use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Fractional;
 use Nexa\Attributes\Numbers\Number;
 use Nexa\Attributes\Numbers\SmallInt;
-use Nexa\Attributes\Strings\AlphaNumeric;
+use Nexa\Attributes\Strings\Strings;
 use Nexa\Attributes\Strings\Text;
 use Nexa\Reflection\EntityReflection;
 
@@ -28,10 +28,10 @@ class Single
     #[AutoIncrement]
     public int $id;
 
-    #[AlphaNumeric(50)]
+    #[Strings(50)]
     public string $img;
 
-    #[AlphaNumeric(20)]
+    #[Strings(20)]
     #[Nullable(false)]
     public string $address;
 

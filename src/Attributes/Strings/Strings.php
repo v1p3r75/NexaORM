@@ -7,7 +7,7 @@ use Doctrine\DBAL\Types\Types;
 use Nexa\Attributes\AttributeType;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class AlphaNumeric extends AttributeType
+class Strings extends AttributeType
 {
 
     public function __construct(int $length = 255) {
