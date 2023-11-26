@@ -5,11 +5,12 @@ namespace Nexa\Models;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Nexa\Exceptions\NotFoundException;
 use Nexa\Nexa;
 use Nexa\Reflection\EntityReflection;
 use ReflectionException;
 
-trait Model
+class Model
 {
 
     private static Connection $connection;
@@ -40,6 +41,28 @@ trait Model
             ->where("id = ?")
             ->setParameters([$id])
             ->fetchAssociative();
+    }
+
+    /**
+     * @throws NotFoundException
+     * @throws Exception
+     */
+    public static function findOrFail($id, $columns = ["*"]): array
+    {
+        new static;
+
+        $result = self::$queryBuilder->select(implode(",", $columns))
+            ->from(self::$table)
+            ->where("id = ?")
+            ->setParameters([$id])
+            ->fetchAssociative();
+
+        if (!$result) {
+
+            throw new NotFoundException('Resource not Found', 4004);
+        }
+
+        return $result;
     }
 
     public function findAll(string $select = "*") {

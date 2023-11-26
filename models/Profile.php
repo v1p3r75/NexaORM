@@ -19,9 +19,8 @@ use Nexa\Models\Model;
 use Nexa\Reflection\EntityReflection;
 
 #[Entity]
-class Profile
+class Profile extends Model
 {
-    use Model;
 
     #[Number]
     #[PrimaryKey]
