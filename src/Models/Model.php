@@ -73,9 +73,16 @@ class Model
         return $result;
     }
 
-    public function findAll(string $select = "*")
+    /**
+     * @throws Exception
+     */
+    public static function findAll(array $columns = ["*"]): array
     {
+        new static;
 
+        return self::$queryBuilder->select(implode(",", $columns))
+            ->from(self::$table)
+            ->fetchAllAssociative();
     }
 
     public function like() {
@@ -127,8 +134,6 @@ class Model
     public static function deleteWhere(array $conditions): int|string
     {
         new static;
-
-        $id = self::secure($conditions);
 
         return self::$connection->delete(self::$table, $conditions);
 
