@@ -4,6 +4,7 @@ namespace Nexa\Models;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
+use Doctrine\DBAL\Query\QueryBuilder;
 use Nexa\Nexa;
 use Nexa\Reflection\EntityReflection;
 use ReflectionException;
@@ -11,22 +12,34 @@ use ReflectionException;
 trait Model
 {
 
-    private static ?Connection $connection = null;
+    private static Connection $connection;
 
-    private static ?string $table = null;
+    private static string $table;
+
+    private static QueryBuilder $queryBuilder;
+
 
     /**
      * @throws ReflectionException
      */
-    public function __construct() {
+    public function __construct()
+    {
 
         $reflection = new EntityReflection($this::class);
-        self::$table = $reflection->getTable(Nexa::$inflector);
         self::$connection = Nexa::getConnection();
+        self::$table = $reflection->getTable(Nexa::$inflector);
+        self::$queryBuilder = self::$connection->createQueryBuilder();
     }
 
-    public static function find($id) {
+    public static function find($id, $columns = ["*"]): array|false
+    {
+        new static;
 
+        return self::$queryBuilder->select(implode(",", $columns))
+            ->from(self::$table)
+            ->where("id = ?")
+            ->setParameters([$id])
+            ->fetchAssociative();
     }
 
     public function findAll(string $select = "*") {
@@ -102,6 +115,16 @@ trait Model
 
         }
         return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
+    }
+
+    private static function prefixTable(array $columns): string
+    {
+        $columns = array_map(fn($column) => self::$table .".". $column, $columns);
+
+        $select = implode(',', $columns);
+
+        return $select;
+
     }
 
 }
