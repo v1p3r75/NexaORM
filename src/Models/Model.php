@@ -5,6 +5,8 @@ namespace Nexa\Models;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\Query\QueryBuilder;
+use Nexa\Attributes\Common\PrimaryKey;
+use Nexa\Attributes\Entities\Entity;
 use Nexa\Exceptions\NotFoundException;
 use Nexa\Nexa;
 use Nexa\Reflection\EntityReflection;
@@ -19,6 +21,8 @@ class Model
 
     private static QueryBuilder $queryBuilder;
 
+    private static ?string $primaryKey = null;
+
 
     /**
      * @throws ReflectionException
@@ -30,15 +34,19 @@ class Model
         self::$connection = Nexa::getConnection();
         self::$table = $reflection->getTable(Nexa::$inflector);
         self::$queryBuilder = self::$connection->createQueryBuilder();
+        self::$primaryKey = self::getPrimaryKey($reflection);
     }
 
+    /**
+     * @throws Exception
+     */
     public static function find($id, $columns = ["*"]): array|false
     {
         new static;
 
         return self::$queryBuilder->select(implode(",", $columns))
             ->from(self::$table)
-            ->where("id = ?")
+            ->where(self::$primaryKey . "= ?")
             ->setParameters([$id])
             ->fetchAssociative();
     }
@@ -53,7 +61,7 @@ class Model
 
         $result = self::$queryBuilder->select(implode(",", $columns))
             ->from(self::$table)
-            ->where("id = ?")
+            ->where(self::$primaryKey . "= ?")
             ->setParameters([$id])
             ->fetchAssociative();
 
@@ -65,7 +73,8 @@ class Model
         return $result;
     }
 
-    public function findAll(string $select = "*") {
+    public function findAll(string $select = "*")
+    {
 
     }
 
@@ -108,9 +117,7 @@ class Model
 
         $id = self::secure($id);
 
-        // TODO : get entity primary column
-
-        return self::$connection->delete(self::$table, ['id' => $id]);
+        return self::$connection->delete(self::$table, [self::$primaryKey => $id]);
 
     }
 
@@ -140,14 +147,16 @@ class Model
         return htmlspecialchars($data, ENT_QUOTES, 'UTF-8');
     }
 
-    private static function prefixTable(array $columns): string
+    private static function getPrimaryKey(EntityReflection $reflection): string|null
     {
-        $columns = array_map(fn($column) => self::$table .".". $column, $columns);
 
-        $select = implode(',', $columns);
+        $properties = $reflection->getProperties();
 
-        return $select;
+        $result = array_filter($properties, function($property) {
+            return $property->getAttributes(PrimaryKey::class);
+        });
 
+        return count($result) > 0 ? $result[0]->getName() : null;
     }
 
 }

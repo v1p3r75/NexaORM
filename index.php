@@ -20,7 +20,7 @@ $nexa = new Nexa(
     ['lang' => Language::ENGLISH]
 );
 
-dump(Profile::findOrFail(1));
+dump(Profile::delete(18));
 /*
 Profile::insert(['img' => 'path', 'address' => 'Cotonou City', 'created_at' => date('Y-m-d')];
 Profile::update(['img' => 'Service', 'address' => 'Cotonou New'], ['id' => 15]);
