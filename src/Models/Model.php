@@ -85,8 +85,14 @@ class Model
             ->fetchAllAssociative();
     }
 
-    public function like() {
+    public static function like(string $column, string $search, $columns = ['*']): array|false
+    {
+        new static;
 
+        return self::$queryBuilder->select(implode(",", $columns))
+            ->from(self::$table)
+            ->where("$column LIKE '%$search%'")
+            ->fetchAllAssociative();
     }
 
     /**
@@ -160,7 +166,6 @@ class Model
         $result = array_filter($properties, function($property) {
             return $property->getAttributes(PrimaryKey::class);
         });
-
         return count($result) > 0 ? $result[0]->getName() : null;
     }
 
