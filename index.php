@@ -5,6 +5,7 @@ namespace Models;
 require './vendor/autoload.php';
 
 use Doctrine\Inflector\Language;
+use Nexa\Databases\Database;
 use Nexa\Reflection\EntityReflection;
 
 use Nexa\Nexa;
@@ -20,8 +21,9 @@ $nexa = new Nexa(
     ['lang' => Language::ENGLISH]
 );
 
-dump(Profile::like('img', 'pa'));
 /*
+dump(Database::raw('SELECT * from profiles'));
+dump(Database::queryBuilder()->select('*')->from('profiles')->fetchAllAssociative());
 Profile::insert(['img' => 'path', 'address' => 'Cotonou City', 'created_at' => date('Y-m-d')];
 Profile::update(['img' => 'Service', 'address' => 'Cotonou New'], ['id' => 15]);
 dump(Profile::deleteWhere(['img' => 'path3']));
