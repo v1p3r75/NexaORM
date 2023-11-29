@@ -10,7 +10,7 @@ use Nexa\Reflection\EntityReflection;
 use ReflectionException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
-class ForeignKey extends AttributeCommon
+class Unique extends AttributeCommon
 {
 
     public function __construct(

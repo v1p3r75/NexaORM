@@ -9,7 +9,7 @@ use ReflectionClass;
 class Entity
 {
     
-    public function __construct(protected string $tableName) {
+    public function __construct(protected ?string $tableName = null) {
 
     }
 

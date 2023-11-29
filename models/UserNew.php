@@ -14,10 +14,9 @@ use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Number;
 use Nexa\Attributes\Numbers\SmallInt;
 use Nexa\Attributes\Strings\Strings;
-use Nexa\Models\Model;
 
-#[Entity]
-class User
+#[Entity('users')]
+class UserNew
 {
 
     #[PrimaryKey]
@@ -26,16 +25,12 @@ class User
     public int $id;
 
     #[Strings]
-    #[DefaultValue('John Doe')]
     public string $username;
 
     #[Number]
-    #[ForeignKey(Profile::class, ['id'], ['onDelete' => 'CASCADE'])]
-    #[Comment('user profile')]
     #[Nullable]
     public int $profile_id;
 
     #[DateAndTime]
-    #[DefaultValue('CURRENT_TIMESTAMP')]
     public DateTime $created_at;
 }

@@ -2,13 +2,14 @@
 
 namespace Nexa\Reflection;
 
+use Doctrine\Inflector\Inflector;
 use Nexa\Attributes\Entities\Entity;
 use ReflectionClass;
 
 class EntityReflection extends ReflectionClass
 {
 
-    public function __construct(object | string $entity)
+    public function __construct(private readonly object | string $entity)
     {
 
         parent::__construct($entity);
@@ -75,22 +76,27 @@ class EntityReflection extends ReflectionClass
 
         }, $optionsList);
 
-        $options = array_merge($type['params'], ...$options); // Merge options with contructor params
+        $options = array_merge($type['params'], ...$options); // Merge options with constructor params
 
         return [$type['type'], $options];
 
     }
 
-    public function getTable()
+    public function getTable(Inflector $inflector)
     {
 
         $entityAttr = $this->getAttributes(Entity::class);
 
-        if (isset($entityAttr[0]) && isset($entityAttr[0]->getArguments()[0])) {
+        if (isset($entityAttr[0], $entityAttr[0]->getArguments()[0])) {
 
-            return $entityAttr[0]->getArguments()[0];
+            return $entityAttr[0]->getArguments()[0]; // return table name if present
         }
-        // TODO: use library for use plural of classname
-        return "none";
+
+        // Returns the entity class name in plural form.
+
+        $entityName = explode('\\', $this->entity);
+        $name = end($entityName);
+
+        return strtolower($inflector->pluralize($name));
     }
 }
