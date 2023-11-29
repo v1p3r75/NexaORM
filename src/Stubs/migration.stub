@@ -1,0 +1,20 @@
+<?php
+
+use Nexa\Attributes\MigrationInterface;
+use Nexa\Databases\Database;
+
+return new class implements MigrationInterface
+{
+
+    public function up() {
+
+        return Database::raw("{up_sql}");
+        
+    }
+
+    public function down() {
+
+        return Database::raw("{down_sql}");
+
+    }
+};
