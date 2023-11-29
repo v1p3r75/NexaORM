@@ -42,7 +42,6 @@ class Nexa
         self::$inflector = InflectorFactory::createForLanguage(
             $this->other_config['lang'] ?? Language::ENGLISH
         )->build();
-
     }
 
     public function getSchema(EntityReflection $entity): Schema
@@ -52,21 +51,18 @@ class Nexa
         $table = $schema->createTable($tableName);
         $columns = $entity->getColumns();
 
-        array_map(function($column) use ($table) {
+        array_map(function ($column) use ($table) {
 
             $name = $column['name'];
-            
             $type = $column['constraints'][0];
 
             $options = $column['constraints'][1] ?? [];
+            $keys = $this->getSpecialOptions($options);
 
-            if($key = $this->isSpecialOption($options)) {
-
+            foreach($keys as $key)
                 unset($options[$key]);
-            }
 
             $table->addColumn($name, $type, $options);
-
         }, $columns);
 
         $primaryKeys = $this->getPrimaryKeys($columns);
@@ -78,23 +74,22 @@ class Nexa
             // $foreign = [column_name, $foreign_table_name, $foreign_table_columns, $options]
 
             $table->addForeignKeyConstraint($foreign[1], [$foreign[0]], $foreign[2], $foreign[3]);
-
-        },$foreignKeys);
+        }, $foreignKeys);
 
         // TODO: Add uniqueIndex columns
 
         return $schema;
     }
 
-    private function getPrimaryKeys(array $columns): array {
+    private function getPrimaryKeys(array $columns): array
+    {
 
         $keys = [];
-        foreach($columns as $column)
-        {
+        foreach ($columns as $column) {
             // find and return the primary key column
-            if($column && isset($column['constraints'][1])) {
+            if ($column && isset($column['constraints'][1])) {
 
-                if( array_key_exists(Nexa::PRIMARY_KEY, $column['constraints'][1])) {
+                if (array_key_exists(Nexa::PRIMARY_KEY, $column['constraints'][1])) {
 
                     $keys[] = $column['name'];
                 }
@@ -104,15 +99,15 @@ class Nexa
         return $keys;
     }
 
-    private function getForeignKeys(array $columns): array {
+    private function getForeignKeys(array $columns): array
+    {
 
         $keys = [];
-        foreach($columns as $column)
-        {
+        foreach ($columns as $column) {
             // find and return the foreign keys
-            if(isset($column['constraints'][1])) {
+            if (isset($column['constraints'][1])) {
 
-                if( array_key_exists(Nexa::FOREIGN_KEY, $column['constraints'][1])) {
+                if (array_key_exists(Nexa::FOREIGN_KEY, $column['constraints'][1])) {
 
                     $keys[] = array_merge([$column['name']], $column['constraints'][1][Nexa::FOREIGN_KEY]);
                 }
@@ -123,21 +118,18 @@ class Nexa
     }
 
 
-    private function isSpecialOption(array $options): string | false
+    private function getSpecialOptions(array $options): array
     {
 
-        if (array_key_exists(Nexa::PRIMARY_KEY, $options)) {
+        $specials = [Nexa::PRIMARY_KEY, Nexa::FOREIGN_KEY];
 
-            return Nexa::PRIMARY_KEY;
-        }
+        $founds = array_filter($options, function($option) use ($specials) {
 
-        if (array_key_exists(Nexa::FOREIGN_KEY, $options)) {
+            return in_array($option, $specials);
 
-            return Nexa::FOREIGN_KEY;
-        }
+        }, ARRAY_FILTER_USE_KEY);
 
-        return false;
-
+        return array_keys($founds);
     }
 
     /**
@@ -152,8 +144,7 @@ class Nexa
 
         try {
             return $prepare->executeQuery();
-
-        }catch (Exception $e) {
+        } catch (Exception $e) {
 
             throw new DatabaseException($e->getMessage(), $e->getCode());
         }
@@ -162,7 +153,8 @@ class Nexa
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function getQuery(Schema $schema): string {
+    public function getQuery(Schema $schema): string
+    {
 
         return implode(";", $schema->toSql($this->platform));
     }
@@ -177,9 +169,43 @@ class Nexa
         return implode(";", $sql);
     }
 
+    public function makeMigration(EntityReflection $entity): bool
+    {
+
+        $tableName = $entity->getTable(self::$inflector);
+
+        $file = $this->getMigrationsPath() . '/' . date('dmYHis') . "-$tableName.php";
+
+        $schema = $this->getSchema($entity);
+
+        return (bool)$this->writeMigration($schema, $file);
+    }
+
+    private function writeMigration(Schema $schema, string $file)
+    {
+
+        $upSql = $this->formatSql($schema->toSql($this->platform));
+        $downSql = $this->formatSql($schema->toDropSql($this->platform));
+
+        $stub = file_get_contents(__DIR__ . '/Stubs/migration.stub');
+        $stub = str_replace('{up_sql}', $upSql, $stub);
+        $stub = str_replace('{down_sql}', $downSql, $stub);
+
+        return file_put_contents($file, $stub);
+    }
+
+    private function formatSql(array $sql)
+    {
+        return implode(";", $sql);
+    }
+
+    public function getMigrationsPath(): string
+    {
+
+        return $this->other_config['migrations_path'] ?? __DIR__ . '/migrations';
+    }
     public static function getConnection(): Connection
     {
         return self::$connection;
     }
-
 }
