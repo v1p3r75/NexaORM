@@ -18,9 +18,12 @@ $nexa = new Nexa(
         'dbname' => 'nexa',
         'driver' => 'pdo_mysql'
     ],
-    ['lang' => Language::ENGLISH]
+    [
+        'lang' => Language::ENGLISH,
+        'migrations_path' => __DIR__ . "/models/migrations/"
+    ]
 );
-
+$nexa->makeMigration(new EntityReflection(Profile::class));
 /*
 dump(Database::raw('SELECT * from profiles'));
 dump(Database::queryBuilder()->select('*')->from('profiles')->fetchAllAssociative());

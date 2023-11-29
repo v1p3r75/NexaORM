@@ -177,6 +177,21 @@ class Nexa
         return implode(";", $sql);
     }
 
+    public function makeMigration(EntityReflection $entity) {
+
+        $tableName = $entity->getTable(self::$inflector);
+
+        $file = $this->getMigrationsPath() . '/' . date('dmYHis') . "-$tableName.php";
+
+        $schema = $this->getSchema($entity);
+
+        file_put_contents($file, $schema);
+    }
+
+    public function getMigrationsPath(): string {
+
+        return $this->other_config['migrations_path'] ?? __DIR__ . '/migrations';
+    }
     public static function getConnection(): Connection
     {
         return self::$connection;
