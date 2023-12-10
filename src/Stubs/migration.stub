@@ -1,10 +1,12 @@
 <?php
 
-use Nexa\Attributes\MigrationInterface;
+use Nexa\Interfaces\MigrationInterface;
 use Nexa\Databases\Database;
 
 return new class implements MigrationInterface
 {
+
+    public string $table = "{table}";
 
     public function up() {
 

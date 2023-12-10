@@ -1,6 +1,6 @@
 <?php
 
-namespace Nexa\Attributes;
+namespace Nexa\Interfaces;
 
 interface MigrationInterface {
 

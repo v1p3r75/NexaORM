@@ -1,9 +1,9 @@
 <?php
-
 namespace Models;
 
 require './vendor/autoload.php';
 
+use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Inflector\Language;
 use Nexa\Databases\Database;
 use Nexa\Reflection\EntityReflection;
@@ -18,13 +18,23 @@ $nexa = new Nexa(
         'dbname' => 'nexa',
         'driver' => 'pdo_mysql'
     ],
+);
+
+$nexa->setOptions(
     [
         'lang' => Language::ENGLISH,
-        'migrations_path' => __DIR__ . "/models/migrations/"
+        'migrations_path' => __DIR__ . "/models/migrations/",
+        'models_path' => __DIR__ . '/models',
+        'models_namespace' => "Models\\",
     ]
 );
-$nexa->makeMigration(new EntityReflection(Profile::class));
+// $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
+
+// $nexa->saveAllMigrations();
+$nexa->runAllMigrations();
+// $nexa->saveMigrationsTable(new Schema);
 /*
+$nexa->makeMigration(new EntityReflection(Profile::class));
 dump(Database::raw('SELECT * from profiles'));
 dump(Database::queryBuilder()->select('*')->from('profiles')->fetchAllAssociative());
 Profile::insert(['img' => 'path', 'address' => 'Cotonou City', 'created_at' => date('Y-m-d')];
