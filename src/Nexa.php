@@ -206,15 +206,31 @@ class Nexa
         return file_put_contents($file, $stub);
     }
 
-    public function saveAllMigrations()
+    public function saveAllMigrations(): bool
     {
 
-        return array_map(
+        $migration_files = $this->getDirectoryFiles($this->getMigrationsPath());
+
+        if(! empty($migration_files)) {
+
+            foreach ($migration_files as $file) {
+
+                unlink($this->getMigrationsPath() . $file);
+            }
+
+            print("\n - Deleted all migrations files : OK");
+        }
+
+        array_map(
             fn ($entity) =>
             $this->makeMigration(new EntityReflection($entity)),
 
             $this->getEntities()
         );
+
+        print("\n - Make new migrations : OK\n");
+
+        return true;
     }
 
     public function runAllMigrations()
