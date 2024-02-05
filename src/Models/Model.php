@@ -71,7 +71,7 @@ class Model
             ->setParameters([$id])
             ->fetchAssociative();
 
-        return is_array($result) ? new Collection($result) : $result;
+        return is_array($result) ? self::collection($result) : $result;
     }
 
     /**
@@ -93,33 +93,33 @@ class Model
             throw new NotFoundException('Resource not Found', 4004);
         }
 
-        return new Collection($result);
+        return self::collection($result);
     }
 
     /**
      * @throws Exception
      */
-    public static function findAll($columns = ["*"]): Collection
+    public static function findAll(array $columns = ["*"]): Collection
     {
         new static;
 
-        $result = self::$queryBuilder->select(
-            is_array($columns) ? implode(',', $columns) : implode(',', func_get_args())
-        )
+        $result = self::$queryBuilder->select(implode(',', $columns))
             ->from(self::$table)
             ->fetchAllAssociative();
 
-        return new Collection($result);
+        return self::collection($result);
     }
 
-    public static function like(string $column, string $search, $columns = ['*']): array|false
+    public static function like(string $column, string $search, $columns = ['*']): Collection
     {
         new static;
 
-        return self::$queryBuilder->select(implode(",", $columns))
+        $result = self::$queryBuilder->select(implode(",", $columns))
             ->from(self::$table)
             ->where("$column LIKE '$search'")
             ->fetchAllAssociative();
+
+        return self::collection($result);
     }
 
     /**
@@ -195,6 +195,16 @@ class Model
         new static;
 
         return self::$connection->delete(self::$table, self::secure($conditions));
+    }
+
+    public static function random(): array {
+
+        return self::findAll()->random();
+    }
+
+    private static function collection(array $collection): Collection {
+
+        return new Collection($collection);
     }
 
     private static function secure(array | string $data)

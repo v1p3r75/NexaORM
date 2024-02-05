@@ -29,8 +29,8 @@ $nexa->setOptions(
     ]
 );
 
-$r = Profile::insert(['img' => 'test.png', 'address' => 'Test']);
-dd($r);
+// $r = Profile::insert(['img' => 'test.png', 'address' => 'Test']);
+dd(Profile::random());
 // $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
 // $nexa->saveAllMigrations();
 // $nexa->runAllMigrations();

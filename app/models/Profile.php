@@ -10,7 +10,9 @@ class Profile extends Model
 
     protected $entity = ProfileEntity::class;
 
-    protected $fillable = ['img'];
+    protected $fillable = ['*'];
+
+    protected $hidden = ['img'];
 
     protected $timestamp = true;
 
