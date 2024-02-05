@@ -23,15 +23,17 @@ $nexa = new Nexa(
 $nexa->setOptions(
     [
         'lang' => Language::ENGLISH,
-        'migrations_path' => __DIR__ . "/models/migrations/",
-        'models_path' => __DIR__ . '/models',
-        'models_namespace' => "Models\\",
+        'migrations_path' => __DIR__ . "/app/migrations",
+        'entity_path' => __DIR__ . '/app/entities',
+        'entity_namespace' => "Entities\\",
     ]
 );
-// $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
 
+$r = Profile::insert(['img' => 'test.png', 'address' => 'Test']);
+dd($r);
+// $profiles = $nexa->getSchema(new EntityReflection(Profile::class));
 // $nexa->saveAllMigrations();
-$nexa->runAllMigrations();
+// $nexa->runAllMigrations();
 // $nexa->saveMigrationsTable(new Schema);
 /*
 $nexa->makeMigration(new EntityReflection(Profile::class));

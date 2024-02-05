@@ -97,6 +97,11 @@ class EntityReflection extends ReflectionClass
         $entityName = explode('\\', $this->entity);
         $name = end($entityName);
 
+        // delete 'entity' suffix if exists
+        if (str_ends_with($name, 'Entity')) {
+            $name = preg_replace('#Entity$#', '', $name);
+        }
+
         return strtolower($inflector->pluralize($name));
     }
 }

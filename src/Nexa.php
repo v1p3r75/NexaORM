@@ -4,6 +4,7 @@ namespace Nexa;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
+use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
@@ -211,15 +212,15 @@ class Nexa
 
         $migration_files = $this->getDirectoryFiles($this->getMigrationsPath());
 
-        if(! empty($migration_files)) {
+        // if (!empty($migration_files)) {
 
-            foreach ($migration_files as $file) {
+        //     foreach ($migration_files as $file) {
 
-                unlink($this->getMigrationsPath() . $file);
-            }
+        //         unlink($this->getMigrationsPath() . $file);
+        //     }
 
-            print("\n - Deleted all migrations files : OK");
-        }
+        //     print("\n - Deleted all migrations files : OK");
+        // }
 
         array_map(
             fn ($entity) =>
@@ -237,22 +238,39 @@ class Nexa
     {
 
         $migrations = $this->getDirectoryFiles($this->getMigrationsPath());
+        $manager = self::$connection->createSchemaManager();
+        $failed =  [];
 
         foreach ($migrations as $migration) {
 
             $_migration = require_once $this->getMigrationsPath() . $migration;
 
-            if (! Database::hasTable($_migration->table)) {
+            if (Database::hasTable($_migration->table)) {
 
-                $_migration->up();
-                $this->makeMigrationAsCompleted($migration);
+                try {
 
+                    $manager->dropTable($_migration->table);
+                } catch (DriverException $e) {
+
+                    $failed[] = $_migration;
+                }
             }
 
+            $_migration->up();
+            $this->makeMigrationAsCompleted($migration);
         }
+        // array_map(
+        //     function ($migration) use ($manager) {
+        //         $manager->dropTable($migration->table);
+        //         $migration->up();
+        //         $this->makeMigrationAsCompleted($migration);
+        //     },
+        //     $failed
+        // );
     }
 
-    private function makeMigrationAsCompleted(string $migration_name) {
+    private function makeMigrationAsCompleted(string $migration_name)
+    {
 
         $builder = Database::queryBuilder();
 
@@ -260,13 +278,12 @@ class Nexa
             'name' => '?',
             'batch' => '?',
         ])->setParameters([$migration_name, 1])->executeQuery();
-
     }
     private function getEntities(): array
     {
 
-        $path = $this->getModelsPath();
-        $namespace = $this->getModelsNamespace();
+        $path = $this->getEntitiesPath();
+        $namespace = $this->getEntitiesNamespace();
 
         $files = $this->getDirectoryFiles($path);
 
@@ -317,26 +334,26 @@ class Nexa
         throw new ConfigException("You must set the migrations_path");
     }
 
-    public function getModelsPath(): string
+    public function getEntitiesPath(): string
     {
 
-        if (isset($this->config['models_path'])) {
+        if (isset($this->config['entity_path'])) {
 
-            return trim($this->config['models_path'], '/') . '/';
+            return trim($this->config['entity_path'], '/') . '/';
         }
 
-        throw new ConfigException("You must set the models_path");
+        throw new ConfigException("You must set the entity_path");
     }
 
-    public function getModelsNamespace(): string
+    public function getEntitiesNamespace(): string
     {
 
-        if (isset($this->config['models_namespace'])) {
+        if (isset($this->config['entity_namespace'])) {
 
-            return trim($this->config['models_namespace'], '\\') . '\\';
+            return trim($this->config['entity_namespace'], '\\') . '\\';
         }
 
-        throw new ConfigException("You must set the models_namespace");
+        throw new ConfigException("You must set the entity_namespace");
     }
 
     public static function getConnection(): Connection
