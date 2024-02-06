@@ -14,6 +14,7 @@ use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Number;
 use Nexa\Attributes\Numbers\SmallInt;
 use Nexa\Attributes\Strings\Strings;
+use Nexa\Nexa;
 
 #[Entity]
 class UserEntity
@@ -29,7 +30,7 @@ class UserEntity
     public string $username;
 
     #[Number]
-    #[ForeignKey(ProfileEntity::class, ['id'], ['onDelete' => 'SET NULL'])]
+    #[ForeignKey(ProfileEntity::class, ['id'], [Nexa::ON_DELETE => 'SET NULL'])]
     #[Comment('user profile')]
     #[Nullable]
     public int $profile_id;

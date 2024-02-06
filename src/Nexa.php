@@ -25,6 +25,7 @@ class Nexa
 
     const PRIMARY_KEY = 'primary_key';
     const FOREIGN_KEY = 'foreign_key';
+    const ON_DELETE = 'onDelete';
 
     public static ?Connection $connection;
 
