@@ -15,7 +15,7 @@ class ForeignKey extends AttributeCommon
 
     public function __construct(
         private $foreignEntity,
-        private array $foreignColumnsNames,
+        private $foreignColumnsNames,
         private array $options = []){
 
     }
@@ -30,7 +30,7 @@ class ForeignKey extends AttributeCommon
         return [
             'options' => [
                 Nexa::FOREIGN_KEY => [
-                    $reflexion->getTable(Nexa::$inflector), $this->foreignColumnsNames, $this->options
+                    $reflexion->getTable(Nexa::$inflector), [$this->foreignColumnsNames], $this->options
                 ]
             ]
         ];

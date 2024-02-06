@@ -1,6 +1,6 @@
 <?php
 
-namespace Models;
+namespace Entities;
 
 use DateTime;
 use Nexa\Attributes\Common\AutoIncrement;
@@ -14,10 +14,10 @@ use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Number;
 use Nexa\Attributes\Numbers\SmallInt;
 use Nexa\Attributes\Strings\Strings;
-use Nexa\Models\Model;
+use Nexa\Nexa;
 
 #[Entity]
-class User
+class UserEntity
 {
 
     #[PrimaryKey]
@@ -30,7 +30,7 @@ class User
     public string $username;
 
     #[Number]
-    #[ForeignKey(Profile::class, ['id'], ['onDelete' => 'CASCADE'])]
+    #[ForeignKey(ProfileEntity::class, ['id'], [Nexa::ON_DELETE => 'SET NULL'])]
     #[Comment('user profile')]
     #[Nullable]
     public int $profile_id;

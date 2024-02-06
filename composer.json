@@ -6,7 +6,8 @@
     "autoload": {
         "psr-4": {
             "Nexa\\": "src/",
-            "Models\\": "models/"
+            "Models\\": "app/models/",
+            "Entities\\": "app/entities/"
         }
     },
     "authors": [

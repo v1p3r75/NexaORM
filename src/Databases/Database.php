@@ -36,4 +36,11 @@ class Database
         return self::$connection->createQueryBuilder();
     }
 
+    public static function hasTable(string $table) {
+
+        new static;
+        
+        return self::$connection->createSchemaManager()->tableExists($table);
+    }
+
 }
