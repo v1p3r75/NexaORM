@@ -6,17 +6,23 @@ use Nexa\Databases\Database;
 return new class implements MigrationInterface
 {
 
-    public string $table = "{table}";
+    public string $table = "{{table}}";
+
+    public string $entity = "{{entity}}";
+
+    public string $schema = <<<CODE
+    {{schema}}
+    CODE;
 
     public function up() {
 
-        return Database::raw("{up_sql}");
+        return Database::raw("{{up_sql}}");
         
     }
 
     public function down() {
 
-        return Database::raw("{down_sql}");
+        return Database::raw("{{down_sql}}");
 
     }
 };

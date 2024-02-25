@@ -104,4 +104,9 @@ class EntityReflection extends ReflectionClass
 
         return strtolower($inflector->pluralize($name));
     }
+
+    public function getEntity() {
+
+        return $this->entity;
+    }
 }

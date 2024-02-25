@@ -95,7 +95,7 @@ class Model
         $result = self::$queryBuilder->select("*")
             ->from(self::$table)
             ->where(self::$primaryKeyEntity . "= ?")
-            ->setParameters([$id])
+            ->setParameters(self::secure([$id]))
             ->fetchAssociative();
 
         if (!$result) {
@@ -126,7 +126,8 @@ class Model
 
         $result = self::$queryBuilder->select(implode(",", $columns))
             ->from(self::$table)
-            ->where("$column LIKE '$search'")
+            ->where("$column LIKE '?'")
+            ->setParameters(self::secure($search))
             ->fetchAllAssociative();
 
         return self::collection(self::fetchForeignKeysData($result, false));

@@ -9,6 +9,8 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
+use Doctrine\DBAL\Schema\SchemaDiff;
+use Doctrine\DBAL\Schema\Table;
 use Doctrine\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
 use Doctrine\Inflector\Language;
@@ -26,6 +28,7 @@ class Nexa
     const PRIMARY_KEY = 'primary_key';
     const FOREIGN_KEY = 'foreign_key';
     const ON_DELETE = 'onDelete';
+    // const CURRENT_DATETIME = Nexa::$connection->getDatabasePlatform()->getCurrentDateSQL();
 
     public static ?Connection $connection;
 
@@ -182,55 +185,76 @@ class Nexa
         return implode(";", $sql);
     }
 
-    public function makeMigration(EntityReflection $entity): bool
+
+
+    private function makeMigration(EntityReflection $entity): bool
     {
 
         $tableName = $entity->getTable(self::$inflector);
-
-        $file = $this->getMigrationsPath() . date('dmYHis') . "_$tableName.php";
-
         $schema = $this->getSchema($entity);
 
-        return (bool)$this->writeMigration($schema, $tableName, $file);
+        $file = $this->getMigrationsPath() . "$tableName.php";
+
+        if (file_exists($file)) {
+
+            $old_migration = require $file;
+
+            $old_schema = unserialize($old_migration->schema);
+            $change = $this->comparator->compareSchemas($old_schema, $schema);
+
+            if (!$change->isEmpty()) {
+                $sql = $this->compareAndGetSQL($old_schema, $schema);
+
+                return (bool)$this->writeMigration($schema, $tableName, $file, $entity,  true, $sql);
+            }
+        }
+
+        return (bool)$this->writeMigration($schema, $tableName, $file, $entity);
     }
 
-    private function writeMigration(Schema $schema, string $table, string $file)
-    {
-
-        $upSql = $this->getQuery($schema);
-        $downSql = $this->getQuery($schema, true);
+    private function writeMigration(
+        Schema $schema,
+        string $table,
+        string $file,
+        EntityReflection $entity,
+        bool $updated = false,
+        string $updated_sql = ''
+    ) {
 
         $stub = file_get_contents(__DIR__ . '/Stubs/migration.stub');
-        $stub = str_replace('{up_sql}', $upSql, $stub);
-        $stub = str_replace('{down_sql}', $downSql, $stub);
-        $stub = str_replace('{table}', $table, $stub);
 
-        return file_put_contents($file, $stub);
+        $data = [
+            'up_sql' => !$updated ? $this->getQuery($schema) : $updated_sql,
+            'down_sql' => $this->getQuery($schema, true),
+            'table' => $table,
+            'schema' => serialize($schema),
+            'entity' => $entity->getEntity()
+        ];
+
+        return $this->fillStub($stub, $file, $data);
     }
 
-    public function saveAllMigrations(): bool
+    public function makeAllMigrations(): bool
     {
 
         $migration_files = $this->getDirectoryFiles($this->getMigrationsPath());
 
-        // if (!empty($migration_files)) {
+        foreach ($migration_files as $file) {
 
-        //     foreach ($migration_files as $file) {
+            $migration = require $this->getMigrationsPath() . $file;
 
-        //         unlink($this->getMigrationsPath() . $file);
-        //     }
+            if (!class_exists($migration->entity)) {
 
-        //     print("\n - Deleted all migrations files : OK");
-        // }
+                unlink($this->getMigrationsPath() . $file); // Delete unused entity
+            }
+        }
 
         array_map(
             fn ($entity) =>
             $this->makeMigration(new EntityReflection($entity)),
 
-            $this->getEntities()
+            array_filter($this->getEntities(), fn($entity) => $entity != null)
         );
-
-        print("\n - Make new migrations : OK\n");
 
         return true;
     }
@@ -292,12 +316,10 @@ class Nexa
 
             $entityPath = $path . $file;
             $class = $namespace . pathinfo($entityPath, PATHINFO_FILENAME);
-
             if (class_exists($class))
                 return $class;
 
-            return false;
-        }, $files);
+            }, $files);
     }
 
     public function saveMigrationsTable(Schema $schema)
@@ -355,6 +377,18 @@ class Nexa
         }
 
         throw new ConfigException("You must set the entity_namespace");
+    }
+
+    public function fillStub(string $stub_content, string $file, array $vars, string $start_delimiter = "{{", string $end_delimiter = "}}"): bool
+    {
+
+        foreach ($vars as $key => $value) {
+
+            $query = $start_delimiter . $key . $end_delimiter;
+            $stub_content = str_replace($query, $value, $stub_content);
+        }
+
+        return @file_put_contents($file, $stub_content);
     }
 
     public static function getConnection(): Connection

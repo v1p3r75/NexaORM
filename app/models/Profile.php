@@ -10,6 +10,6 @@ class Profile extends Model
 
     protected $entity = ProfileEntity::class;
 
-    protected $timestamp = true;
+    protected $timestamp = false;
 
 }

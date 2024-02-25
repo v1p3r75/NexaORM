@@ -30,7 +30,7 @@ class UserEntity
     public string $username;
 
     #[Number]
-    #[ForeignKey(ProfileEntity::class, ['id'], [Nexa::ON_DELETE => 'SET NULL'])]
+    #[ForeignKey(ProfileEntity::class, 'id', [Nexa::ON_DELETE => 'SET NULL'])]
     #[Comment('user profile')]
     #[Nullable]
     public int $profile_id;

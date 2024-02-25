@@ -15,7 +15,7 @@ class ForeignKey extends AttributeCommon
 
     public function __construct(
         private $foreignEntity,
-        private $foreignColumnsNames,
+        private string $foreignColumnsNames,
         private array $options = []){
 
     }
