@@ -26,11 +26,11 @@ class UserEntity
     public int $id;
 
     #[Strings]
-    #[DefaultValue('John Doe')]
+    #[DefaultValue('John')]
     public string $username;
 
     #[Number]
-    #[ForeignKey(ProfileEntity::class, 'id', [Nexa::ON_DELETE => 'SET NULL'])]
+    #[ForeignKey(ProfileEntity::class, 'id', [Nexa::ON_DELETE => 'CASCADE'])]
     #[Comment('user profile')]
     #[Nullable]
     public int $profile_id;

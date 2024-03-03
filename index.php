@@ -5,6 +5,7 @@ require './vendor/autoload.php';
 
 use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Inflector\Language;
+use Entities\ProfileEntity;
 use Nexa\Databases\Database;
 use Nexa\Reflection\EntityReflection;
 
@@ -29,4 +30,5 @@ $nexa->setOptions(
     ]
 );
 
-dd($nexa->makeAllMigrations());
+// $nexa->makeAllMigrations();
+$nexa->runAllMigrations();

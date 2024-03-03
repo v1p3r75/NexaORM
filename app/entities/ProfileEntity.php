@@ -5,6 +5,7 @@ namespace Entities;
 use DateTime;
 use Nexa\Attributes\Common\AutoIncrement;
 use Nexa\Attributes\Common\PrimaryKey;
+use Nexa\Attributes\Common\Unique;
 use Nexa\Attributes\Dates\Date;
 use Nexa\Attributes\Entities\Entity;
 use Nexa\Attributes\Numbers\Number;

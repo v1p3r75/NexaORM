@@ -22,7 +22,7 @@ class SingleEntity
     #[AutoIncrement]
     public int $id;
 
-    #[Strings(50)]
+    #[Strings(30)]
     public string $img;
 
     #[Strings(20)]

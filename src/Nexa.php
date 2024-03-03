@@ -9,16 +9,14 @@ use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
 use Doctrine\DBAL\Schema\Schema;
-use Doctrine\DBAL\Schema\SchemaDiff;
-use Doctrine\DBAL\Schema\Table;
 use Doctrine\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
 use Doctrine\Inflector\Language;
-use Error;
 use Exception;
 use Nexa\Databases\Database;
 use Nexa\Exceptions\ConfigException;
 use Nexa\Exceptions\DatabaseException;
+use Nexa\Exceptions\MigrationFailedException;
 use Nexa\Reflection\EntityReflection;
 
 
@@ -27,8 +25,8 @@ class Nexa
 
     const PRIMARY_KEY = 'primary_key';
     const FOREIGN_KEY = 'foreign_key';
+    const UNIQUE_KEY = 'unique';
     const ON_DELETE = 'onDelete';
-    // const CURRENT_DATETIME = Nexa::$connection->getDatabasePlatform()->getCurrentDateSQL();
 
     public static ?Connection $connection;
 
@@ -92,6 +90,9 @@ class Nexa
             $table->addForeignKeyConstraint($foreign[1], [$foreign[0]], $foreign[2], $foreign[3]);
         }, $foreignKeys);
 
+        // dd($this->getUniqueKeys($columns));
+        // $table->addUniqueIndex($this->getUniqueKeys($columns));
+
         // TODO: Add uniqueIndex columns
 
         return $schema;
@@ -106,6 +107,24 @@ class Nexa
             if ($column && isset($column['constraints'][1])) {
 
                 if (array_key_exists(Nexa::PRIMARY_KEY, $column['constraints'][1])) {
+
+                    $keys[] = $column['name'];
+                }
+            }
+        }
+
+        return $keys;
+    }
+
+    private function getUniqueKeys(array $columns): array
+    {
+
+        $keys = [];
+        foreach ($columns as $column) {
+            // find and return the primary key column
+            if ($column && isset($column['constraints'][1])) {
+
+                if (array_key_exists(Nexa::UNIQUE_KEY, $column['constraints'][1])) {
 
                     $keys[] = $column['name'];
                 }
@@ -137,7 +156,7 @@ class Nexa
     private function getSpecialOptions(array $options): array
     {
 
-        $specials = [Nexa::PRIMARY_KEY, Nexa::FOREIGN_KEY];
+        $specials = [Nexa::PRIMARY_KEY, Nexa::FOREIGN_KEY, Nexa::UNIQUE_KEY];
 
         $founds = array_filter($options, function ($option) use ($specials) {
 
@@ -192,8 +211,12 @@ class Nexa
 
         $tableName = $entity->getTable(self::$inflector);
         $schema = $this->getSchema($entity);
+        $fileName = "$tableName.php";
+        $file = $this->getMigrationsPath() . $fileName;
 
-        $file = $this->getMigrationsPath() . "$tableName.php";
+        $migrations = $this->getMigrationsPath() . "/data/.nexa_migrations.json";
+        $content = file_get_contents($migrations);
+        $data = json_decode($content);
 
         if (file_exists($file)) {
 
@@ -204,9 +227,17 @@ class Nexa
 
             if (!$change->isEmpty()) {
                 $sql = $this->compareAndGetSQL($old_schema, $schema);
+                $data->runs->$fileName = false;
+
+                file_put_contents($migrations, json_encode($data));
 
                 return (bool)$this->writeMigration($schema, $tableName, $file, $entity,  true, $sql);
             }
+        }
+        if (!isset($data->runs->$fileName)) {
+
+            $data->runs->$fileName = false;
+            file_put_contents($migrations, json_encode($data));
         }
 
         return (bool)$this->writeMigration($schema, $tableName, $file, $entity);
@@ -238,6 +269,8 @@ class Nexa
     {
 
         $migration_files = $this->getDirectoryFiles($this->getMigrationsPath());
+        $migrations = $this->getMigrationsPath() . "/data/.nexa_migrations.json";
+        $data = json_decode(file_get_contents($migrations));
 
         foreach ($migration_files as $file) {
 
@@ -245,7 +278,12 @@ class Nexa
 
             if (!class_exists($migration->entity)) {
 
-                unlink($this->getMigrationsPath() . $file); // Delete unused entity
+                if (!in_array($file, $data->removes)) {
+
+                    $data->removes[] = $file;
+
+                    file_put_contents($migrations, json_encode($data));
+                }
             }
         }
 
@@ -253,7 +291,7 @@ class Nexa
             fn ($entity) =>
             $this->makeMigration(new EntityReflection($entity)),
 
-            array_filter($this->getEntities(), fn($entity) => $entity != null)
+            array_filter($this->getEntities(), fn ($entity) => $entity != null)
         );
 
         return true;
@@ -261,37 +299,62 @@ class Nexa
 
     public function runAllMigrations()
     {
+        $path = $this->getMigrationsPath() . "/data/.nexa_migrations.json";
+        $migrations = file_get_contents($path);
+        $data = json_decode($migrations);
 
-        $migrations = $this->getDirectoryFiles($this->getMigrationsPath());
-        $manager = self::$connection->createSchemaManager();
-        $failed =  [];
+        foreach ($data->removes as $migration_to_remove) {
 
-        foreach ($migrations as $migration) {
+            $migration_class = require $this->getMigrationsPath() . $migration_to_remove;
+            try {
+                if ($migration_class->down()) {
+                    unset($data->runs->$migration_to_remove);
+                    $data->removes = array_filter($data->removes, fn ($m) => $m != $migration_to_remove); // TODO: Refactoring
+                    file_put_contents($path, json_encode($data));
+                    unlink($this->getMigrationsPath() . $migration_to_remove); // Delete unused migration file
+                }
+            } catch (Exception $e) {
 
-            $_migration = require_once $this->getMigrationsPath() . $migration;
+                throw new MigrationFailedException($e->getMessage(), $e->getCode(), $e->getPrevious());
+            }
+        }
 
-            if (Database::hasTable($_migration->table)) {
+        foreach ($data->runs as $migration => $state) {
 
+            if (!$state) {
+
+                $migration_class = require $this->getMigrationsPath() . $migration;
                 try {
 
-                    $manager->dropTable($_migration->table);
-                } catch (DriverException $e) {
+                    if ($migration_class->up()) {
+                        $data->runs->$migration = true;
+                        file_put_contents($path, json_encode($data));
+                    }
+                } catch (Exception $e) {
 
-                    $failed[] = $_migration;
+                    throw new MigrationFailedException($e->getMessage(), $e->getCode(), $e->getPrevious());
                 }
             }
-
-            $_migration->up();
-            $this->makeMigrationAsCompleted($migration);
         }
-        // array_map(
-        //     function ($migration) use ($manager) {
-        //         $manager->dropTable($migration->table);
-        //         $migration->up();
-        //         $this->makeMigrationAsCompleted($migration);
-        //     },
-        //     $failed
-        // );
+
+        return true;
+    }
+
+    public function runMigration(string $file, bool $down_before = false)
+    {
+
+        // $file = $this->getMigrationsPath() . $name . ".php";
+
+        if (!file_exists($file)) {
+
+            throw new Exception("Could not find migration");
+        }
+
+        $migration = require $file;
+
+        if ($down_before) $migration->down();
+
+        return (bool)$migration->up();
     }
 
     private function makeMigrationAsCompleted(string $migration_name)
@@ -318,8 +381,7 @@ class Nexa
             $class = $namespace . pathinfo($entityPath, PATHINFO_FILENAME);
             if (class_exists($class))
                 return $class;
-
-            }, $files);
+        }, $files);
     }
 
     public function saveMigrationsTable(Schema $schema)
