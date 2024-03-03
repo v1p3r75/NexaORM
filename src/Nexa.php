@@ -347,6 +347,38 @@ class Nexa
         return true;
     }
 
+    public function rebuildAllMigrations()
+    {
+
+        if ($this->deleteFolder($this->getMigrationsPath())) {
+
+            return $this->makeAllMigrations();
+        }
+
+        return false;
+    }
+
+    private function deleteFolder(string $path)
+    {
+
+        $content = scandir($path);
+
+        array_map(function ($file) use ($path) {
+
+            if (!in_array($file, ['.', '..'])) {
+
+                $filepath = $path . "/" . $file;
+
+                is_dir($filepath) ?
+                    $this->deleteFolder($filepath) && rmdir($filepath)
+                    : unlink($filepath);
+            }
+        }, $content);
+
+        return true;
+    }
+
+
     private function getEntities(): array
     {
 
@@ -442,7 +474,7 @@ class Nexa
 
     public function prepareMigrationsFolder(): void
     {
-        
+
         $file = $this->getMigrationsPath() . "/data/nexa_migrations.json";
 
         if (!file_exists($file)) {
