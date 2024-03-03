@@ -88,7 +88,8 @@ class Nexa
             $table->addForeignKeyConstraint($foreign[1], [$foreign[0]], $foreign[2], $foreign[3]);
         }, $foreignKeys);
 
-        $table->addUniqueIndex($this->getUniqueKeys($columns));
+        $uniqueKeys = $this->getUniqueKeys($columns);
+        if ($uniqueKeys) $table->addUniqueConstraint($uniqueKeys);
 
         // TODO: Add uniqueIndex columns
 
@@ -401,7 +402,7 @@ class Nexa
 
     public function getMigrationsDataPath(): string
     {
-        return $this->getMigrationsPath() . "/data/.nexa_migrations.json";
+        return $this->getMigrationsPath() . "/data/nexa_migrations.json";
     }
 
     public function getMigrationsDataFileContent(): mixed
