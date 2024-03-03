@@ -34,5 +34,3 @@ class SingleEntity
     #[DateAndTime]
     public DateTime $created_at;
 }
-
-// $entity = new EntityReflection(User::class);

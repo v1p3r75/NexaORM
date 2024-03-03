@@ -30,12 +30,12 @@ class UserEntity
     public string $username;
 
     #[Number]
-    #[ForeignKey(ProfileEntity::class, 'id', [Nexa::ON_DELETE => 'CASCADE'])]
+    #[ForeignKey(ProfileEntity::class, 'id', [Nexa::ON_DELETE => Nexa::CASCADE, Nexa::ON_UPDATE => Nexa::CASCADE])]
     #[Comment('user profile')]
     #[Nullable]
     public int $profile;
 
     #[DateAndTime]
-    #[DefaultValue('CURRENT_TIMESTAMP')]
+    #[DefaultValue(Nexa::DATETIME_NOW)]
     public DateTime $created_at;
 }

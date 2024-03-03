@@ -22,9 +22,18 @@ class Nexa
 {
 
     const PRIMARY_KEY = 'primary_key';
+
     const FOREIGN_KEY = 'foreign_key';
+
     const UNIQUE_KEY = 'unique';
+
     const ON_DELETE = 'onDelete';
+
+    const ON_UPDATE = 'onUpdate';
+
+    const CASCADE = 'CASCADE';
+
+    const DATETIME_NOW = 'CURRENT_TIMESTAMP';
 
     public static ?Connection $connection;
 
@@ -260,6 +269,8 @@ class Nexa
 
     public function makeAllMigrations(): bool
     {
+        $this->prepareMigrationsFolder();
+
 
         $migration_files = $this->getDirectoryFiles($this->getMigrationsPath());
         $migration_data = $this->getMigrationsDataFileContent();
@@ -427,6 +438,18 @@ class Nexa
         }
 
         return @file_put_contents($file, $stub_content);
+    }
+
+    public function prepareMigrationsFolder(): void
+    {
+        
+        $file = $this->getMigrationsPath() . "/data/nexa_migrations.json";
+
+        if (!file_exists($file)) {
+
+            mkdir(dirname($file), 0777, true);
+            file_put_contents($file, file_get_contents(__DIR__ . "/Stubs/migrations_settings.stub"));
+        }
     }
 
     public static function getConnection(): Connection
