@@ -12,4 +12,6 @@ class Profile extends Model
 
     protected $timestamp = false;
 
+    protected $fillable = ['*'];
+
 }

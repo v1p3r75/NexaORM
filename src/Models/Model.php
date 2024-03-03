@@ -300,7 +300,7 @@ class Model
                 return [
                     'name' => $p->getName(),
                     'foreign_table' => (new EntityReflection($attr[0]->getArguments()[0]))->getTable(Nexa::$inflector),
-                    'foreign_column' => implode('', $attr[0]->getArguments()[1]),
+                    'foreign_column' => $attr[0]->getArguments()[1],
                 ];
             }
         }, $result);

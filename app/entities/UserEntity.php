@@ -33,7 +33,7 @@ class UserEntity
     #[ForeignKey(ProfileEntity::class, 'id', [Nexa::ON_DELETE => 'CASCADE'])]
     #[Comment('user profile')]
     #[Nullable]
-    public int $profile_id;
+    public int $profile;
 
     #[DateAndTime]
     #[DefaultValue('CURRENT_TIMESTAMP')]

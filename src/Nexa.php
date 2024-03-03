@@ -91,8 +91,6 @@ class Nexa
         $uniqueKeys = $this->getUniqueKeys($columns);
         if ($uniqueKeys) $table->addUniqueConstraint($uniqueKeys);
 
-        // TODO: Add uniqueIndex columns
-
         return $schema;
     }
 

@@ -27,4 +27,4 @@ $nexa->setOptions(
 );
 
 // $nexa->makeAllMigrations();
-$nexa->runAllMigrations();
+// $nexa->runAllMigrations();
