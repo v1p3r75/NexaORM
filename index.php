@@ -30,5 +30,5 @@ $nexa->setOptions(
     ]
 );
 
-// $nexa->makeAllMigrations();
+$nexa->makeAllMigrations();
 $nexa->runAllMigrations();

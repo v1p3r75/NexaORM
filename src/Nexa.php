@@ -214,9 +214,7 @@ class Nexa
         $fileName = "$tableName.php";
         $file = $this->getMigrationsPath() . $fileName;
 
-        $migrations = $this->getMigrationsPath() . "/data/.nexa_migrations.json";
-        $content = file_get_contents($migrations);
-        $data = json_decode($content);
+        $migration_data = $this->getMigrationsDataFileContent();
 
         if (file_exists($file)) {
 
@@ -227,17 +225,16 @@ class Nexa
 
             if (!$change->isEmpty()) {
                 $sql = $this->compareAndGetSQL($old_schema, $schema);
-                $data->runs->$fileName = false;
-
-                file_put_contents($migrations, json_encode($data));
+                $migration_data->runs->$fileName = false;
+                $this->setMigrationsData($migration_data);
 
                 return (bool)$this->writeMigration($schema, $tableName, $file, $entity,  true, $sql);
             }
         }
-        if (!isset($data->runs->$fileName)) {
+        if (!isset($migration_data->runs->$fileName)) {
 
-            $data->runs->$fileName = false;
-            file_put_contents($migrations, json_encode($data));
+            $migration_data->runs->$fileName = false;
+            $this->setMigrationsData($migration_data);
         }
 
         return (bool)$this->writeMigration($schema, $tableName, $file, $entity);
@@ -269,8 +266,8 @@ class Nexa
     {
 
         $migration_files = $this->getDirectoryFiles($this->getMigrationsPath());
-        $migrations = $this->getMigrationsPath() . "/data/.nexa_migrations.json";
-        $data = json_decode(file_get_contents($migrations));
+        $migration_data = $this->getMigrationsDataFileContent();
+
 
         foreach ($migration_files as $file) {
 
@@ -278,11 +275,11 @@ class Nexa
 
             if (!class_exists($migration->entity)) {
 
-                if (!in_array($file, $data->removes)) {
+                if (!in_array($file, $migration_data->removes)) {
 
-                    $data->removes[] = $file;
+                    $migration_data->removes[] = $file;
 
-                    file_put_contents($migrations, json_encode($data));
+                    $this->setMigrationsData($migration_data);
                 }
             }
         }
@@ -299,18 +296,17 @@ class Nexa
 
     public function runAllMigrations()
     {
-        $path = $this->getMigrationsPath() . "/data/.nexa_migrations.json";
-        $migrations = file_get_contents($path);
-        $data = json_decode($migrations);
 
-        foreach ($data->removes as $migration_to_remove) {
+        $migration_data = $this->getMigrationsDataFileContent();
+
+        foreach ($migration_data->removes as $migration_to_remove) {
 
             $migration_class = require $this->getMigrationsPath() . $migration_to_remove;
             try {
                 if ($migration_class->down()) {
-                    unset($data->runs->$migration_to_remove);
-                    $data->removes = array_filter($data->removes, fn ($m) => $m != $migration_to_remove); // TODO: Refactoring
-                    file_put_contents($path, json_encode($data));
+                    unset($migration_data->runs->$migration_to_remove);
+                    $migration_data->removes = array_filter($migration_data->removes, fn ($m) => $m != $migration_to_remove);
+                    $this->setMigrationsData($migration_data);
                     unlink($this->getMigrationsPath() . $migration_to_remove); // Delete unused migration file
                 }
             } catch (Exception $e) {
@@ -319,7 +315,7 @@ class Nexa
             }
         }
 
-        foreach ($data->runs as $migration => $state) {
+        foreach ($migration_data->runs as $migration => $state) {
 
             if (!$state) {
 
@@ -327,8 +323,8 @@ class Nexa
                 try {
 
                     if ($migration_class->up()) {
-                        $data->runs->$migration = true;
-                        file_put_contents($path, json_encode($data));
+                        $migration_data->runs->$migration = true;
+                        $this->setMigrationsData($migration_data);
                     }
                 } catch (Exception $e) {
 
@@ -342,8 +338,6 @@ class Nexa
 
     public function runMigration(string $file, bool $down_before = false)
     {
-
-        // $file = $this->getMigrationsPath() . $name . ".php";
 
         if (!file_exists($file)) {
 
@@ -439,6 +433,24 @@ class Nexa
         }
 
         throw new ConfigException("You must set the entity_namespace");
+    }
+
+    public function getMigrationsDataPath(): string 
+    {
+        return $this->getMigrationsPath() . "/data/.nexa_migrations.json";
+    }
+
+    public function getMigrationsDataFileContent(): mixed {
+
+        $migrations = file_get_contents($this->getMigrationsDataPath());
+
+        return json_decode($migrations);
+    }
+
+    public function setMigrationsData(mixed $data) {
+
+        return file_put_contents($this->getMigrationsDataPath(), json_encode($data));
+
     }
 
     public function fillStub(string $stub_content, string $file, array $vars, string $start_delimiter = "{{", string $end_delimiter = "}}"): bool
