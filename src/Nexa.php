@@ -90,7 +90,6 @@ class Nexa
             $table->addForeignKeyConstraint($foreign[1], [$foreign[0]], $foreign[2], $foreign[3]);
         }, $foreignKeys);
 
-        // dd($this->getUniqueKeys($columns));
         // $table->addUniqueIndex($this->getUniqueKeys($columns));
 
         // TODO: Add uniqueIndex columns
@@ -299,6 +298,8 @@ class Nexa
 
         $migration_data = $this->getMigrationsDataFileContent();
 
+        // remove entities
+
         foreach ($migration_data->removes as $migration_to_remove) {
 
             $migration_class = require $this->getMigrationsPath() . $migration_to_remove;
@@ -314,6 +315,8 @@ class Nexa
                 throw new MigrationFailedException($e->getMessage(), $e->getCode(), $e->getPrevious());
             }
         }
+
+        // runs changed migrations
 
         foreach ($migration_data->runs as $migration => $state) {
 
@@ -336,31 +339,6 @@ class Nexa
         return true;
     }
 
-    public function runMigration(string $file, bool $down_before = false)
-    {
-
-        if (!file_exists($file)) {
-
-            throw new Exception("Could not find migration");
-        }
-
-        $migration = require $file;
-
-        if ($down_before) $migration->down();
-
-        return (bool)$migration->up();
-    }
-
-    private function makeMigrationAsCompleted(string $migration_name)
-    {
-
-        $builder = Database::queryBuilder();
-
-        return $builder->insert('nexa_migrations')->values([
-            'name' => '?',
-            'batch' => '?',
-        ])->setParameters([$migration_name, 1])->executeQuery();
-    }
     private function getEntities(): array
     {
 
@@ -376,18 +354,6 @@ class Nexa
             if (class_exists($class))
                 return $class;
         }, $files);
-    }
-
-    public function saveMigrationsTable(Schema $schema)
-    {
-        $table = $schema->createTable('nexa_migrations');
-
-        $table->addColumn('id', 'smallint', ['autoincrement' => true]);
-        $table->addColumn('name', 'string', ['length' => 50]);
-        $table->addColumn('batch', 'smallint',);
-        $table->setPrimaryKey(['id']);
-
-        return $this->executeSchema($schema);
     }
 
     private function getDirectoryFiles(string $directory): array
@@ -435,22 +401,23 @@ class Nexa
         throw new ConfigException("You must set the entity_namespace");
     }
 
-    public function getMigrationsDataPath(): string 
+    public function getMigrationsDataPath(): string
     {
         return $this->getMigrationsPath() . "/data/.nexa_migrations.json";
     }
 
-    public function getMigrationsDataFileContent(): mixed {
+    public function getMigrationsDataFileContent(): mixed
+    {
 
         $migrations = file_get_contents($this->getMigrationsDataPath());
 
         return json_decode($migrations);
     }
 
-    public function setMigrationsData(mixed $data) {
+    public function setMigrationsData(mixed $data)
+    {
 
         return file_put_contents($this->getMigrationsDataPath(), json_encode($data));
-
     }
 
     public function fillStub(string $stub_content, string $file, array $vars, string $start_delimiter = "{{", string $end_delimiter = "}}"): bool
