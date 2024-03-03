@@ -3,11 +3,7 @@ namespace Models;
 
 require './vendor/autoload.php';
 
-use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Inflector\Language;
-use Entities\ProfileEntity;
-use Nexa\Databases\Database;
-use Nexa\Reflection\EntityReflection;
 
 use Nexa\Nexa;
 

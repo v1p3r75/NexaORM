@@ -4,7 +4,6 @@ namespace Nexa;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
@@ -13,7 +12,6 @@ use Doctrine\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
 use Doctrine\Inflector\Language;
 use Exception;
-use Nexa\Databases\Database;
 use Nexa\Exceptions\ConfigException;
 use Nexa\Exceptions\DatabaseException;
 use Nexa\Exceptions\MigrationFailedException;
@@ -90,7 +88,7 @@ class Nexa
             $table->addForeignKeyConstraint($foreign[1], [$foreign[0]], $foreign[2], $foreign[3]);
         }, $foreignKeys);
 
-        // $table->addUniqueIndex($this->getUniqueKeys($columns));
+        $table->addUniqueIndex($this->getUniqueKeys($columns));
 
         // TODO: Add uniqueIndex columns
 
