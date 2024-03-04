@@ -16,7 +16,7 @@
             "email": "elfriedv16@gmail.com"
         }
     ],
-    "minimum-stability": "dev",
+    "minimum-stability": "stable",
     "require": {
         "doctrine/dbal": "4.0.x-dev",
         "doctrine/inflector": "2.1.x-dev"
