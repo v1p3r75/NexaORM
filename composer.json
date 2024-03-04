@@ -1,6 +1,6 @@
 {
     "name": "v1p3r75/nexa-orm",
-    "description": "A PHP new generation ORM",
+    "description": "NexaORM is a modern PHP Object-Relational Mapping (ORM) library designed to simplify database interactions and streamline the development of PHP applications.",
     "type": "library",
     "license": "MIT",
     "autoload": {
