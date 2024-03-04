@@ -1,1 +1,1 @@
-{"runs":{"profiles.php":false,"single.php":false,"users.php":false},"removes":[]}
+{"runs":{"profiles.php":true,"single.php":true,"tests.php":true,"users.php":true},"removes":[]}

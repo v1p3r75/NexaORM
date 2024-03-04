@@ -2,7 +2,7 @@
 
 // Example for init Nexa
 
-/*
+
 require './vendor/autoload.php';
 
 use Doctrine\Inflector\Language;
@@ -28,4 +28,5 @@ $nexa->setOptions(
     ]
 );
 
-*/
+
+$nexa->runAllMigrations();

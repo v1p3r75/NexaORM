@@ -2,6 +2,7 @@
 
 namespace Nexa\Models;
 
+use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
@@ -207,6 +208,22 @@ class Model
 
         return self::$connection->delete(self::$table, self::secure($conditions));
     }
+
+    public static function beginTransaction(): void {
+
+        new static;
+
+        return self::$connection->beginTransaction();
+    }
+
+    public static function transcationalFunction(Closure $function): void {
+        
+        new static;
+
+        return self::$connection->transactional($function);
+
+    }
+
 
     public static function random(): array
     {
