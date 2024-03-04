@@ -2,6 +2,7 @@
 
 namespace Nexa\Models;
 
+use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
 use Doctrine\DBAL\ParameterType;
@@ -95,7 +96,7 @@ class Model
         $result = self::$queryBuilder->select("*")
             ->from(self::$table)
             ->where(self::$primaryKeyEntity . "= ?")
-            ->setParameters([$id])
+            ->setParameters(self::secure([$id]))
             ->fetchAssociative();
 
         if (!$result) {
@@ -126,7 +127,8 @@ class Model
 
         $result = self::$queryBuilder->select(implode(",", $columns))
             ->from(self::$table)
-            ->where("$column LIKE '$search'")
+            ->where("$column LIKE '?'")
+            ->setParameters(self::secure($search))
             ->fetchAllAssociative();
 
         return self::collection(self::fetchForeignKeysData($result, false));
@@ -206,6 +208,22 @@ class Model
 
         return self::$connection->delete(self::$table, self::secure($conditions));
     }
+
+    public static function beginTransaction(): void {
+
+        new static;
+
+        return self::$connection->beginTransaction();
+    }
+
+    public static function transcationalFunction(Closure $function): void {
+        
+        new static;
+
+        return self::$connection->transactional($function);
+
+    }
+
 
     public static function random(): array
     {
@@ -299,7 +317,7 @@ class Model
                 return [
                     'name' => $p->getName(),
                     'foreign_table' => (new EntityReflection($attr[0]->getArguments()[0]))->getTable(Nexa::$inflector),
-                    'foreign_column' => implode('', $attr[0]->getArguments()[1]),
+                    'foreign_column' => $attr[0]->getArguments()[1],
                 ];
             }
         }, $result);

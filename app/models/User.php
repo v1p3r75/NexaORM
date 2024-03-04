@@ -12,6 +12,6 @@ class User extends Model
 
     protected $fillable = ['*'];
 
-    protected $timestamp = true;
+    protected $timestamp = false;
 
 }

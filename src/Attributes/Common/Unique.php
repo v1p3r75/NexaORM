@@ -4,35 +4,14 @@ namespace Nexa\Attributes\Common;
 
 use Attribute;
 use Nexa\Attributes\AttributeCommon;
-use Nexa\Attributes\Entities\Entity;
 use Nexa\Nexa;
-use Nexa\Reflection\EntityReflection;
-use ReflectionException;
 
 #[Attribute(Attribute::TARGET_PROPERTY)]
 class Unique extends AttributeCommon
 {
 
-    public function __construct(
-        private $foreignEntity,
-        private array $foreignColumnsNames,
-        private array $options = []){
+    protected string $key = Nexa::UNIQUE_KEY;
 
-    }
-
-    /**
-     * @throws ReflectionException
-     */
-    public function get()
-    {
-        $reflexion = new EntityReflection($this->foreignEntity);
-
-        return [
-            'options' => [
-                Nexa::FOREIGN_KEY => [
-                    $reflexion->getTable(Nexa::$inflector), $this->foreignColumnsNames, $this->options
-                ]
-            ]
-        ];
-    }
+    public function __construct(protected $options = []) {}
+    
 }

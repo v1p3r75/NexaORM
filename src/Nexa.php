@@ -4,7 +4,6 @@ namespace Nexa;
 
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\DriverManager;
-use Doctrine\DBAL\Exception\DriverException;
 use Doctrine\DBAL\Platforms\AbstractPlatform;
 use Doctrine\DBAL\Result;
 use Doctrine\DBAL\Schema\Comparator;
@@ -12,11 +11,10 @@ use Doctrine\DBAL\Schema\Schema;
 use Doctrine\Inflector\Inflector;
 use Doctrine\Inflector\InflectorFactory;
 use Doctrine\Inflector\Language;
-use Error;
 use Exception;
-use Nexa\Databases\Database;
 use Nexa\Exceptions\ConfigException;
 use Nexa\Exceptions\DatabaseException;
+use Nexa\Exceptions\MigrationFailedException;
 use Nexa\Reflection\EntityReflection;
 
 
@@ -24,8 +22,18 @@ class Nexa
 {
 
     const PRIMARY_KEY = 'primary_key';
+
     const FOREIGN_KEY = 'foreign_key';
+
+    const UNIQUE_KEY = 'unique';
+
     const ON_DELETE = 'onDelete';
+
+    const ON_UPDATE = 'onUpdate';
+
+    const CASCADE = 'CASCADE';
+
+    const DATETIME_NOW = 'CURRENT_TIMESTAMP';
 
     public static ?Connection $connection;
 
@@ -89,7 +97,8 @@ class Nexa
             $table->addForeignKeyConstraint($foreign[1], [$foreign[0]], $foreign[2], $foreign[3]);
         }, $foreignKeys);
 
-        // TODO: Add uniqueIndex columns
+        $uniqueKeys = $this->getUniqueKeys($columns);
+        if ($uniqueKeys) $table->addUniqueConstraint($uniqueKeys);
 
         return $schema;
     }
@@ -103,6 +112,24 @@ class Nexa
             if ($column && isset($column['constraints'][1])) {
 
                 if (array_key_exists(Nexa::PRIMARY_KEY, $column['constraints'][1])) {
+
+                    $keys[] = $column['name'];
+                }
+            }
+        }
+
+        return $keys;
+    }
+
+    private function getUniqueKeys(array $columns): array
+    {
+
+        $keys = [];
+        foreach ($columns as $column) {
+            // find and return the primary key column
+            if ($column && isset($column['constraints'][1])) {
+
+                if (array_key_exists(Nexa::UNIQUE_KEY, $column['constraints'][1])) {
 
                     $keys[] = $column['name'];
                 }
@@ -134,7 +161,7 @@ class Nexa
     private function getSpecialOptions(array $options): array
     {
 
-        $specials = [Nexa::PRIMARY_KEY, Nexa::FOREIGN_KEY];
+        $specials = [Nexa::PRIMARY_KEY, Nexa::FOREIGN_KEY, Nexa::UNIQUE_KEY];
 
         $founds = array_filter($options, function ($option) use ($specials) {
 
@@ -182,55 +209,94 @@ class Nexa
         return implode(";", $sql);
     }
 
-    public function makeMigration(EntityReflection $entity): bool
+
+
+    private function makeMigration(EntityReflection $entity): bool
     {
 
         $tableName = $entity->getTable(self::$inflector);
-
-        $file = $this->getMigrationsPath() . date('dmYHis') . "_$tableName.php";
-
         $schema = $this->getSchema($entity);
+        $fileName = "$tableName.php";
+        $file = $this->getMigrationsPath() . $fileName;
 
-        return (bool)$this->writeMigration($schema, $tableName, $file);
+        $migration_data = $this->getMigrationsDataFileContent();
+
+        if (file_exists($file)) {
+
+            $old_migration = require $file;
+
+            $old_schema = unserialize($old_migration->schema);
+            $change = $this->comparator->compareSchemas($old_schema, $schema);
+
+            if (!$change->isEmpty()) {
+                $sql = $this->compareAndGetSQL($old_schema, $schema);
+                $migration_data->runs->$fileName = false;
+                $this->setMigrationsData($migration_data);
+
+                return (bool)$this->writeMigration($schema, $tableName, $file, $entity,  true, $sql);
+            }
+        }
+        if (!isset($migration_data->runs->$fileName)) {
+
+            $migration_data->runs->$fileName = false;
+            $this->setMigrationsData($migration_data);
+        }
+
+        return (bool)$this->writeMigration($schema, $tableName, $file, $entity);
     }
 
-    private function writeMigration(Schema $schema, string $table, string $file)
-    {
-
-        $upSql = $this->getQuery($schema);
-        $downSql = $this->getQuery($schema, true);
+    private function writeMigration(
+        Schema $schema,
+        string $table,
+        string $file,
+        EntityReflection $entity,
+        bool $updated = false,
+        string $updated_sql = ''
+    ) {
 
         $stub = file_get_contents(__DIR__ . '/Stubs/migration.stub');
-        $stub = str_replace('{up_sql}', $upSql, $stub);
-        $stub = str_replace('{down_sql}', $downSql, $stub);
-        $stub = str_replace('{table}', $table, $stub);
 
-        return file_put_contents($file, $stub);
+        $data = [
+            'up_sql' => !$updated ? $this->getQuery($schema) : $updated_sql,
+            'down_sql' => $this->getQuery($schema, true),
+            'table' => $table,
+            'schema' => serialize($schema),
+            'entity' => $entity->getEntity()
+        ];
+
+        return $this->fillStub($stub, $file, $data);
     }
 
-    public function saveAllMigrations(): bool
+    public function makeAllMigrations(): bool
     {
+        $this->prepareMigrationsFolder();
+
 
         $migration_files = $this->getDirectoryFiles($this->getMigrationsPath());
+        $migration_data = $this->getMigrationsDataFileContent();
 
-        // if (!empty($migration_files)) {
 
-        //     foreach ($migration_files as $file) {
+        foreach ($migration_files as $file) {
 
-        //         unlink($this->getMigrationsPath() . $file);
-        //     }
+            $migration = require $this->getMigrationsPath() . $file;
 
-        //     print("\n - Deleted all migrations files : OK");
-        // }
+            if (!class_exists($migration->entity)) {
+
+                if (!in_array($file, $migration_data->removes)) {
+
+                    $migration_data->removes[] = $file;
+
+                    $this->setMigrationsData($migration_data);
+                }
+            }
+        }
 
         array_map(
             fn ($entity) =>
             $this->makeMigration(new EntityReflection($entity)),
 
-            $this->getEntities()
+            array_filter($this->getEntities(), fn ($entity) => $entity != null)
         );
-
-        print("\n - Make new migrations : OK\n");
 
         return true;
     }
@@ -238,48 +304,81 @@ class Nexa
     public function runAllMigrations()
     {
 
-        $migrations = $this->getDirectoryFiles($this->getMigrationsPath());
-        $manager = self::$connection->createSchemaManager();
-        $failed =  [];
+        $migration_data = $this->getMigrationsDataFileContent();
 
-        foreach ($migrations as $migration) {
+        // remove entities
 
-            $_migration = require_once $this->getMigrationsPath() . $migration;
+        foreach ($migration_data->removes as $migration_to_remove) {
 
-            if (Database::hasTable($_migration->table)) {
+            $migration_class = require $this->getMigrationsPath() . $migration_to_remove;
+            try {
+                if ($migration_class->down()) {
+                    unset($migration_data->runs->$migration_to_remove);
+                    $migration_data->removes = array_filter($migration_data->removes, fn ($m) => $m != $migration_to_remove);
+                    $this->setMigrationsData($migration_data);
+                    unlink($this->getMigrationsPath() . $migration_to_remove); // Delete unused migration file
+                }
+            } catch (Exception $e) {
 
+                throw new MigrationFailedException($e->getMessage(), $e->getCode(), $e->getPrevious());
+            }
+        }
+
+        // runs changed migrations
+
+        foreach ($migration_data->runs as $migration => $state) {
+
+            if (!$state) {
+
+                $migration_class = require $this->getMigrationsPath() . $migration;
                 try {
 
-                    $manager->dropTable($_migration->table);
-                } catch (DriverException $e) {
+                    if ($migration_class->up()) {
+                        $migration_data->runs->$migration = true;
+                        $this->setMigrationsData($migration_data);
+                    }
+                } catch (Exception $e) {
 
-                    $failed[] = $_migration;
+                    throw new MigrationFailedException($e->getMessage(), $e->getCode(), $e->getPrevious());
                 }
             }
-
-            $_migration->up();
-            $this->makeMigrationAsCompleted($migration);
         }
-        // array_map(
-        //     function ($migration) use ($manager) {
-        //         $manager->dropTable($migration->table);
-        //         $migration->up();
-        //         $this->makeMigrationAsCompleted($migration);
-        //     },
-        //     $failed
-        // );
+
+        return true;
     }
 
-    private function makeMigrationAsCompleted(string $migration_name)
+    public function rebuildAllMigrations()
     {
 
-        $builder = Database::queryBuilder();
+        if ($this->deleteFolder($this->getMigrationsPath())) {
 
-        return $builder->insert('nexa_migrations')->values([
-            'name' => '?',
-            'batch' => '?',
-        ])->setParameters([$migration_name, 1])->executeQuery();
+            return $this->makeAllMigrations();
+        }
+
+        return false;
     }
+
+    private function deleteFolder(string $path)
+    {
+
+        $content = scandir($path);
+
+        array_map(function ($file) use ($path) {
+
+            if (!in_array($file, ['.', '..'])) {
+
+                $filepath = $path . "/" . $file;
+
+                is_dir($filepath) ?
+                    $this->deleteFolder($filepath) && rmdir($filepath)
+                    : unlink($filepath);
+            }
+        }, $content);
+
+        return true;
+    }
+
+
     private function getEntities(): array
     {
 
@@ -292,24 +391,9 @@ class Nexa
 
             $entityPath = $path . $file;
             $class = $namespace . pathinfo($entityPath, PATHINFO_FILENAME);
-
             if (class_exists($class))
                 return $class;
-
-            return false;
         }, $files);
-    }
-
-    public function saveMigrationsTable(Schema $schema)
-    {
-        $table = $schema->createTable('nexa_migrations');
-
-        $table->addColumn('id', 'smallint', ['autoincrement' => true]);
-        $table->addColumn('name', 'string', ['length' => 50]);
-        $table->addColumn('batch', 'smallint',);
-        $table->setPrimaryKey(['id']);
-
-        return $this->executeSchema($schema);
     }
 
     private function getDirectoryFiles(string $directory): array
@@ -355,6 +439,49 @@ class Nexa
         }
 
         throw new ConfigException("You must set the entity_namespace");
+    }
+
+    public function getMigrationsDataPath(): string
+    {
+        return $this->getMigrationsPath() . "/data/nexa_migrations.json";
+    }
+
+    public function getMigrationsDataFileContent(): mixed
+    {
+
+        $migrations = file_get_contents($this->getMigrationsDataPath());
+
+        return json_decode($migrations);
+    }
+
+    public function setMigrationsData(mixed $data)
+    {
+
+        return file_put_contents($this->getMigrationsDataPath(), json_encode($data));
+    }
+
+    public function fillStub(string $stub_content, string $file, array $vars, string $start_delimiter = "{{", string $end_delimiter = "}}"): bool
+    {
+
+        foreach ($vars as $key => $value) {
+
+            $query = $start_delimiter . $key . $end_delimiter;
+            $stub_content = str_replace($query, $value, $stub_content);
+        }
+
+        return @file_put_contents($file, $stub_content);
+    }
+
+    public function prepareMigrationsFolder(): void
+    {
+
+        $file = $this->getMigrationsPath() . "/data/nexa_migrations.json";
+
+        if (!file_exists($file)) {
+
+            mkdir(dirname($file), 0777, true);
+            file_put_contents($file, file_get_contents(__DIR__ . "/Stubs/migrations_settings.stub"));
+        }
     }
 
     public static function getConnection(): Connection
