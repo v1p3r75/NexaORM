@@ -17,11 +17,11 @@
         }
     ],
     "minimum-stability": "stable",
-    "require": {
-        "doctrine/dbal": "4.0.x-dev",
-        "doctrine/inflector": "2.1.x-dev"
-    },
     "require-dev": {
         "symfony/var-dumper": "6.4.x-dev"
+    },
+    "require": {
+        "doctrine/dbal": "^4.0",
+        "doctrine/inflector": "^2.0"
     }
 }
