@@ -8,6 +8,7 @@ require './vendor/autoload.php';
 use Doctrine\Inflector\Language;
 
 use Nexa\Nexa;
+use Nexa\Test\Models\Profile;
 
 $nexa = new Nexa(
     [
@@ -28,6 +29,5 @@ $nexa->setOptions(
     ]
 );
 
-
-$nexa->makeAllMigrations();
-$nexa->runAllMigrations();
+// $nexa->makeAllMigrations();
+// $nexa->runAllMigrations();
