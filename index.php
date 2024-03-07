@@ -1,6 +1,6 @@
 <?php
 
-// Example for init Nexa
+// Example
 
 
 require './vendor/autoload.php';
@@ -8,6 +8,7 @@ require './vendor/autoload.php';
 use Doctrine\Inflector\Language;
 
 use Nexa\Nexa;
+use Nexa\Test\Models\Profile;
 
 $nexa = new Nexa(
     [
@@ -22,11 +23,11 @@ $nexa = new Nexa(
 $nexa->setOptions(
     [
         'lang' => Language::ENGLISH,
-        'migrations_path' => __DIR__ . "/app/migrations",
-        'entity_path' => __DIR__ . '/app/entities',
-        'entity_namespace' => "Entities\\",
+        'migrations_path' => __DIR__ . "/tests/migrations",
+        'entity_path' => __DIR__ . '/tests/Entities',
+        'entity_namespace' => "Nexa\\Test\\Entities",
     ]
 );
 
-
-$nexa->runAllMigrations();
+// $nexa->makeAllMigrations();
+// $nexa->runAllMigrations();

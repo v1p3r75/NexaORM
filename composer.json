@@ -3,25 +3,35 @@
     "description": "NexaORM is a modern PHP Object-Relational Mapping (ORM) library designed to simplify database interactions and streamline the development of PHP applications.",
     "type": "library",
     "license": "MIT",
-    "autoload": {
-        "psr-4": {
-            "Nexa\\": "src/",
-            "Models\\": "app/models/",
-            "Entities\\": "app/entities/"
-        }
-    },
-    "authors": [
-        {
-            "name": "v1p3r75",
-            "email": "elfriedv16@gmail.com"
-        }
+    "keywords": [
+        "nexa",
+        "nexa-orm",
+        "nexaORM",
+        "Nexa PHP",
+        "ORM PHP",
+        "orm"
     ],
-    "minimum-stability": "stable",
-    "require-dev": {
-        "symfony/var-dumper": "6.4.x-dev"
-    },
     "require": {
         "doctrine/dbal": "^4.0",
         "doctrine/inflector": "^2.0"
+    },
+    "require-dev": {
+        "symfony/var-dumper": "6.4.x-dev"
+    },
+    "authors": [
+        {
+            "name": "Fortunatus KIDJE (v1p3r75)",
+            "email": "elfriedv16@gmail.com"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Nexa\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Nexa\\Test\\": "tests/"
+        }
     }
 }

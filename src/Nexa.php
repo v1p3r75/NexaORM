@@ -15,6 +15,7 @@ use Exception;
 use Nexa\Exceptions\ConfigException;
 use Nexa\Exceptions\DatabaseException;
 use Nexa\Exceptions\MigrationFailedException;
+use Nexa\Logging\Logger;
 use Nexa\Reflection\EntityReflection;
 
 
@@ -87,7 +88,7 @@ class Nexa
         }, $columns);
 
         $primaryKeys = $this->getPrimaryKeys($columns);
-        $table->setPrimaryKey($primaryKeys);
+        if ($primaryKeys) $table->setPrimaryKey($primaryKeys);
 
         $foreignKeys = $this->getForeignKeys($columns);
 
@@ -223,6 +224,11 @@ class Nexa
 
         if (file_exists($file)) {
 
+            if (! $migration_data->runs->$fileName) { // if the migration is not run yet
+
+                return (bool)$this->writeMigration($schema, $tableName, $file, $entity);
+            }
+
             $old_migration = require $file;
 
             $old_schema = unserialize($old_migration->schema);
@@ -233,11 +239,13 @@ class Nexa
                 $migration_data->runs->$fileName = false;
                 $this->setMigrationsData($migration_data);
 
+                Logger::info('Edit an old migration for : ' . $tableName);
                 return (bool)$this->writeMigration($schema, $tableName, $file, $entity,  true, $sql);
             }
         }
         if (!isset($migration_data->runs->$fileName)) {
 
+            Logger::info('Make new migration for : ' . $tableName);
             $migration_data->runs->$fileName = false;
             $this->setMigrationsData($migration_data);
         }
@@ -446,7 +454,7 @@ class Nexa
         return $this->getMigrationsPath() . "/data/nexa_migrations.json";
     }
 
-    public function getMigrationsDataFileContent(): mixed
+    private function getMigrationsDataFileContent(): mixed
     {
 
         $migrations = file_get_contents($this->getMigrationsDataPath());
@@ -454,13 +462,13 @@ class Nexa
         return json_decode($migrations);
     }
 
-    public function setMigrationsData(mixed $data)
+    private function setMigrationsData(mixed $data)
     {
 
         return file_put_contents($this->getMigrationsDataPath(), json_encode($data));
     }
 
-    public function fillStub(string $stub_content, string $file, array $vars, string $start_delimiter = "{{", string $end_delimiter = "}}"): bool
+    private function fillStub(string $stub_content, string $file, array $vars, string $start_delimiter = "{{", string $end_delimiter = "}}"): bool
     {
 
         foreach ($vars as $key => $value) {
@@ -472,7 +480,7 @@ class Nexa
         return @file_put_contents($file, $stub_content);
     }
 
-    public function prepareMigrationsFolder(): void
+    private function prepareMigrationsFolder(): void
     {
 
         $file = $this->getMigrationsPath() . "/data/nexa_migrations.json";

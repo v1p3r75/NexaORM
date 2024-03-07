@@ -5,7 +5,6 @@ namespace Nexa\Models;
 use Closure;
 use Doctrine\DBAL\Connection;
 use Doctrine\DBAL\Exception;
-use Doctrine\DBAL\ParameterType;
 use Doctrine\DBAL\Query\QueryBuilder;
 use Nexa\Attributes\Common\ForeignKey;
 use Nexa\Attributes\Common\PrimaryKey;
@@ -213,10 +212,17 @@ class Model
 
         new static;
 
-        return self::$connection->beginTransaction();
+        self::$connection->beginTransaction();
     }
 
-    public static function transcationalFunction(Closure $function): void {
+    public static function commitTranscaction(): void {
+
+        new static;
+
+        self::$connection->commit();
+    }
+
+    public static function transcationalFunction(Closure $function) {
         
         new static;
 
@@ -237,9 +243,11 @@ class Model
         return new Collection($collection);
     }
 
-    private static function secure(array | string $data)
+    private static function secure(array | string | null $data)
     {
 
+        if (is_null($data)) return null;
+        
         if (is_array($data)) {
 
             return array_map(function ($value) {
@@ -299,7 +307,7 @@ class Model
         return $result;
     }
 
-    public static function getForeignKeys(EntityReflection $reflection)
+    private static function getForeignKeys(EntityReflection $reflection)
     {
 
         $properties = $reflection->getProperties();
@@ -322,4 +330,5 @@ class Model
             }
         }, $result);
     }
+
 }
