@@ -36,6 +36,8 @@ class Nexa
 
     const DATETIME_NOW = 'CURRENT_TIMESTAMP';
 
+    private static ?Nexa $instance = null;
+
     public static ?Connection $connection;
 
     private Comparator $comparator;
@@ -49,7 +51,7 @@ class Nexa
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function __construct(private readonly array $db_config)
+    private function __construct(private readonly array $db_config)
     {
 
         self::$connection = DriverManager::getConnection($this->db_config);
@@ -57,7 +59,7 @@ class Nexa
         $this->comparator = new Comparator($this->platform);
     }
 
-    public function setOptions(array $options)
+    private function setOptions(array $options)
     {
 
         $this->config = $options;
@@ -492,8 +494,43 @@ class Nexa
         }
     }
 
+    public static function getNexa(array $db_config, array $options): Nexa
+    {
+
+        if (is_null(self::$instance)) {
+
+            self::$instance = new self($db_config);
+            self::$instance->setOptions($options);
+        }
+
+        return self::$instance;
+    }
+
     public static function getConnection(): Connection
     {
-        return self::$connection;
+
+        return self::$instance::$connection;
+    }
+
+    public static function getNexaFromEnv()
+    {
+
+        $config = [
+                'host' => getenv('NEXA_DB_HOST'),
+                'user' => getenv('NEXA_DB_USER'),
+                'password' => getenv('NEXA_DB_PASSWORD'),
+                'dbname' => getenv('NEXA_DB_NAME'),
+                'driver' => getenv('NEXA_DB_DRIVER')
+        ];
+
+        $options = [
+            'lang' => getenv('NEXA_LANG'),
+            'migrations_path' => getenv('NEXA_MIGRATION_PATH'),
+            'entity_path' => getenv('NEXA_ENTITY_PATH'),
+            'entity_namespace' => getenv('NEXA_ENTITY_NAMESPACE'),
+        ];
+
+
+        return self::getNexa($config, $options);
     }
 }
