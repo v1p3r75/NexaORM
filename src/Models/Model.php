@@ -224,7 +224,7 @@ class Model
         self::$connection->commit();
     }
 
-    public static function transcationalFunction(Closure $function)
+    public static function transcational(Closure $function)
     {
 
         new static;
