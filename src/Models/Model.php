@@ -30,6 +30,8 @@ class Model
 
     private static $foreignKeys;
 
+    protected $_config_path = "";
+
     protected $entity;
 
     protected $hidden;
@@ -57,7 +59,7 @@ class Model
     public function __construct()
     {
 
-        self::$connection = Nexa::getNexaFromEnv()->getConnection();
+        self::$connection = $this->getConnection();
         $reflection = new EntityReflection($this->entity); // TODO: create search_entity method (entity auto detection)
         self::$table = $reflection->getTable(Nexa::$inflector);
         self::$queryBuilder = self::$connection->createQueryBuilder();
@@ -332,4 +334,10 @@ class Model
             }
         }, $result);
     }
+
+    private function getConnection() {
+
+        return Nexa::getInstance($this->_config_path)->getConnection();
+    }
+
 }

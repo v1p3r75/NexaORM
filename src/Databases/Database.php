@@ -15,8 +15,7 @@ class Database
 
     public function __construct() {
         
-        $nexa = Nexa::getNexaFromEnv();
-        self::$connection = $nexa->getConnection();
+        self::$connection = Nexa::getInstance()->getConnection();
 
     }
 

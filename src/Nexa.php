@@ -226,7 +226,7 @@ class Nexa
 
         if (file_exists($file)) {
 
-            if (! $migration_data->runs->$fileName) { // if the migration is not run yet
+            if (!$migration_data->runs->$fileName) { // if the migration is not run yet
 
                 return (bool)$this->writeMigration($schema, $tableName, $file, $entity);
             }
@@ -494,13 +494,27 @@ class Nexa
         }
     }
 
-    public static function getNexa(array $db_config, array $options): Nexa
+    public static function getInstance(?string $config_path = null)
     {
 
         if (is_null(self::$instance)) {
 
-            self::$instance = new self($db_config);
-            self::$instance->setOptions($options);
+            if ($config_path) {
+
+                $db_config = require $config_path;
+
+                if (!is_array($db_config)) {
+
+                    throw new Exception("Database configurations file doesn't return a valid array");
+                }
+
+                $options = isset($db_config['options']) ? $db_config['options'] : [];
+                unset($db_config['options']);
+
+
+                self::$instance = new self($db_config);
+                self::$instance->setOptions($options);
+            }
         }
 
         return self::$instance;
@@ -510,27 +524,5 @@ class Nexa
     {
 
         return self::$instance::$connection;
-    }
-
-    public static function getNexaFromEnv()
-    {
-
-        $config = [
-                'host' => getenv('NEXA_DB_HOST'),
-                'user' => getenv('NEXA_DB_USER'),
-                'password' => getenv('NEXA_DB_PASSWORD'),
-                'dbname' => getenv('NEXA_DB_NAME'),
-                'driver' => getenv('NEXA_DB_DRIVER')
-        ];
-
-        $options = [
-            'lang' => getenv('NEXA_LANG'),
-            'migrations_path' => getenv('NEXA_MIGRATION_PATH'),
-            'entity_path' => getenv('NEXA_ENTITY_PATH'),
-            'entity_namespace' => getenv('NEXA_ENTITY_NAMESPACE'),
-        ];
-
-
-        return self::getNexa($config, $options);
     }
 }
