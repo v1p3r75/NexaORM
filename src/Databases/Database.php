@@ -14,8 +14,8 @@ class Database
     private static \Doctrine\DBAL\Connection $connection;
 
     public function __construct() {
-
-        self::$connection = Nexa::getConnection();
+        
+        self::$connection = Nexa::getInstance()->getConnection();
 
     }
 

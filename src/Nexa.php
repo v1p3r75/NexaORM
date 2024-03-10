@@ -36,6 +36,8 @@ class Nexa
 
     const DATETIME_NOW = 'CURRENT_TIMESTAMP';
 
+    private static ?Nexa $instance = null;
+
     public static ?Connection $connection;
 
     private Comparator $comparator;
@@ -49,7 +51,7 @@ class Nexa
     /**
      * @throws \Doctrine\DBAL\Exception
      */
-    public function __construct(private readonly array $db_config)
+    private function __construct(private readonly array $db_config)
     {
 
         self::$connection = DriverManager::getConnection($this->db_config);
@@ -57,7 +59,7 @@ class Nexa
         $this->comparator = new Comparator($this->platform);
     }
 
-    public function setOptions(array $options)
+    private function setOptions(array $options)
     {
 
         $this->config = $options;
@@ -224,7 +226,7 @@ class Nexa
 
         if (file_exists($file)) {
 
-            if (! $migration_data->runs->$fileName) { // if the migration is not run yet
+            if (!$migration_data->runs->$fileName) { // if the migration is not run yet
 
                 return (bool)$this->writeMigration($schema, $tableName, $file, $entity);
             }
@@ -492,8 +494,35 @@ class Nexa
         }
     }
 
+    public static function getInstance(?string $config_path = null)
+    {
+
+        if (is_null(self::$instance)) {
+
+            if ($config_path) {
+
+                $db_config = require $config_path;
+
+                if (!is_array($db_config)) {
+
+                    throw new Exception("Database configurations file doesn't return a valid array");
+                }
+
+                $options = isset($db_config['options']) ? $db_config['options'] : [];
+                unset($db_config['options']);
+
+
+                self::$instance = new self($db_config);
+                self::$instance->setOptions($options);
+            }
+        }
+
+        return self::$instance;
+    }
+
     public static function getConnection(): Connection
     {
-        return self::$connection;
+
+        return self::$instance::$connection;
     }
 }

@@ -30,6 +30,8 @@ class Model
 
     private static $foreignKeys;
 
+    protected $_config_path = "";
+
     protected $entity;
 
     protected $hidden;
@@ -57,7 +59,7 @@ class Model
     public function __construct()
     {
 
-        self::$connection = Nexa::getConnection();
+        self::$connection = $this->getConnection();
         $reflection = new EntityReflection($this->entity); // TODO: create search_entity method (entity auto detection)
         self::$table = $reflection->getTable(Nexa::$inflector);
         self::$queryBuilder = self::$connection->createQueryBuilder();
@@ -208,26 +210,28 @@ class Model
         return self::$connection->delete(self::$table, self::secure($conditions));
     }
 
-    public static function beginTransaction(): void {
+    public static function beginTransaction(): void
+    {
 
         new static;
 
         self::$connection->beginTransaction();
     }
 
-    public static function commitTranscaction(): void {
+    public static function commitTranscaction(): void
+    {
 
         new static;
 
         self::$connection->commit();
     }
 
-    public static function transcationalFunction(Closure $function) {
-        
+    public static function transcational(Closure $function)
+    {
+
         new static;
 
         return self::$connection->transactional($function);
-
     }
 
 
@@ -247,7 +251,7 @@ class Model
     {
 
         if (is_null($data)) return null;
-        
+
         if (is_array($data)) {
 
             return array_map(function ($value) {
@@ -272,7 +276,7 @@ class Model
     private static function fetchForeignKeysData(array $result, bool $single = true): array
     {
 
-        if (! $single) {
+        if (!$single) {
 
             foreach ($result as &$row) {
 
@@ -329,6 +333,11 @@ class Model
                 ];
             }
         }, $result);
+    }
+
+    private function getConnection() {
+
+        return Nexa::getInstance($this->_config_path)->getConnection();
     }
 
 }
