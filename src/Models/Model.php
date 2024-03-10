@@ -30,7 +30,7 @@ class Model
 
     private static $foreignKeys;
 
-    protected $_config_path = "";
+    private $_config_path = "";
 
     protected $entity;
 
@@ -60,7 +60,7 @@ class Model
     {
 
         self::$connection = $this->getConnection();
-        $reflection = new EntityReflection($this->entity); // TODO: create search_entity method (entity auto detection)
+        $reflection = new EntityReflection($this->entity);
         self::$table = $reflection->getTable(Nexa::$inflector);
         self::$queryBuilder = self::$connection->createQueryBuilder();
         self::$primaryKeyEntity = $this->getPrimaryKey($reflection);
@@ -338,6 +338,16 @@ class Model
     private function getConnection() {
 
         return Nexa::getInstance($this->_config_path)->getConnection();
+    }
+
+    public function setConfigPath(string $filepath) {
+
+        if (!file_exists($filepath)) {
+
+            throw new NotFoundException("Database configuration file : $filepath not found");
+        }
+
+        $this->_config_path = $filepath;
     }
 
 }
