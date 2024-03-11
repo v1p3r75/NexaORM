@@ -3,6 +3,7 @@
     "description": "NexaORM is a modern PHP Object-Relational Mapping (ORM) library designed to simplify database interactions and streamline the development of PHP applications.",
     "type": "library",
     "license": "MIT",
+    "homepage": "https://nexa-orm.vercel.app/",
     "keywords": [
         "nexa",
         "nexa-orm",
